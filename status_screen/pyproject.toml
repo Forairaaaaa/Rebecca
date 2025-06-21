@@ -4,4 +4,14 @@ version = "0.1.0"
 description = "Status Screen"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["luma.emulator>=1.5.0", "psutil>=7.0.0"]
+dependencies = [
+  "luma.emulator==1.5.0",
+  "psutil==7.0.0",
+  "luma.lcd==2.11.0",
+  "gpiozero==2.0.1",
+  "lgpio==0.2.2.0",
+  "local_utils"
+]
+
+[tool.uv.sources]
+local_utils = { path = "./utils" }
