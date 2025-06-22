@@ -23,12 +23,10 @@ class GPIO:
             return
         if mode == GPIO.OUT:
             initial = kwargs.get("initial", GPIO.LOW)
-            GPIO._pins[pin] = DigitalOutputDevice(
-                pin, pin_factory=GPIO._factory, initial_value=initial)
+            GPIO._pins[pin] = DigitalOutputDevice(pin, pin_factory=GPIO._factory, initial_value=initial)
         elif mode == GPIO.IN:
             pull_up = kwargs.get("pull_up", False)
-            GPIO._pins[pin] = DigitalInputDevice(
-                pin, pin_factory=GPIO._factory, pull_up=pull_up)
+            GPIO._pins[pin] = DigitalInputDevice(pin, pin_factory=GPIO._factory, pull_up=pull_up)
 
     @staticmethod
     def output(pin, value):
@@ -57,8 +55,12 @@ class GPIO:
         def start(self, duty_cycle):
             if self._running:
                 return
-            self._dev = PWMOutputDevice(self.pin, pin_factory=GPIO._factory,
-                                        frequency=self.frequency, initial_value=duty_cycle/100.0)
+            self._dev = PWMOutputDevice(
+                self.pin,
+                pin_factory=GPIO._factory,
+                frequency=self.frequency,
+                initial_value=duty_cycle / 100.0,
+            )
             self._running = True
 
         def ChangeDutyCycle(self, duty_cycle):
