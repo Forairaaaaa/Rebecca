@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any
 import utils.lcd as lcd
+import numpy as np
 import logging
 import json
 import sys
@@ -11,29 +12,41 @@ import os
 TEMP_DIR = "/tmp/cover_screen"
 
 
-class CoverScreen:
-    def __init__(self, name, panel, logger):
+def create_logger():
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s"))
+    logger.addHandler(ch)
+
+    return logger
+
+
+logger = create_logger()
+
+
+class CoverScreenFrameBuffer:
+    def __init__(self, name, panel):
         self._name = name
         self._panel = panel
-        self._logger = logger
         self._port = -1
         self._zmq_socket = self._create_zmq_socket()
-        self._action_handlers = self._create_action_handlers()
         self._create_info_file()
 
     def _create_zmq_socket(self):
-        self._logger.info(f"[{self._name}] create zmq socket")
+        logger.info(f"[{self._name}] create zmq socket")
 
         context = zmq.Context()
         socket = context.socket(zmq.REP)
 
         self._port = socket.bind_to_random_port("tcp://*")
-        self._logger.info(f"[{self._name}] bind to port: {self._port}")
+        logger.info(f"[{self._name}] bind to port: {self._port}")
 
         return socket
 
     def _create_info_file(self):
-        self._logger.info(f"[{self._name}] create info file")
+        logger.info(f"[{self._name}] create info file")
 
         os.makedirs(TEMP_DIR, exist_ok=True)
 
@@ -51,56 +64,24 @@ class CoverScreen:
                 f,
             )
 
-        self._logger.info(f"[{self._name}] write info file: {info_path}")
-
-    def _create_action_handlers(self):
-        handlers = {}
-
-        def get_fb(self):
-            self._zmq_socket.send(self._panel.frame_buffer.tobytes())
-
-        def set_fb(self):
-            data = self._zmq_socket.recv()
-            self._panel.frame_buffer.buffer.frombytes(data)
-            self._zmq_socket.send("ok👌")
-
-        def set_brightness(self):
-            data = self._zmq_socket.recv()
-            if isinstance(data, int):
-                self._panel.device.backlight(data)
-            else:
-                self._logger.warning(f"[{self._name}] invalid brightness: {data}")
-                self._zmq_socket.send("invalid brightness😰")
-            self._zmq_socket.send("ok👌")
-
-        handlers["get_fb"] = get_fb
-        handlers["set_fb"] = set_fb
-        handlers["set_brightness"] = set_brightness
-
-        return handlers
+        logger.info(f"[{self._name}] write info file: {info_path}")
 
     def update(self):
-        message: Any = self._zmq_socket.recv_json()
-        action = message["action"]
-        if action in self._action_handlers:
-            self._action_handlers[action](self)
-        else:
-            self._logger.warning(f"[{self._name}] unknown action: {action}")
-            self._zmq_socket.send("unknown action😰")
+        raw_data: Any = self._zmq_socket.recv()
 
+        try:
+            src = np.frombuffer(raw_data, dtype=np.uint32)
+            np.copyto(
+                self._panel.frame_buffer.buffer,
+                src.reshape(self._panel.frame_buffer.buffer.shape),
+            )
+            self._panel.frame_buffer.push()
+        except Exception as e:
+            logger.error(f"[{self._name}] error: {e}")
+            self._zmq_socket.send_json({"status": -1, "msg": str(e)})
+            return
 
-def create_logger():
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s"))
-    logger.addHandler(ch)
-
-    return logger
-
-
-logger = create_logger()
+        self._zmq_socket.send_json({"status": 0, "msg": "ok👌"})
 
 
 def main():
@@ -108,12 +89,12 @@ def main():
     panels = []
     panels.append(lcd.Zjy169(gpio_DC=27, gpio_RST=17, gpio_LIGHT=25, rotate=3))
 
-    logger.info("create screens")
-    screens = [CoverScreen(f"screen{i}", panels[i], logger) for i in range(len(panels))]
+    logger.info("create frame buffers")
+    fbs = [CoverScreenFrameBuffer(f"fb{i}", panels[i]) for i in range(len(panels))]
 
     while True:
-        for screen in screens:
-            screen.update()
+        for fb in fbs:
+            fb.update()
 
 
 if __name__ == "__main__":
