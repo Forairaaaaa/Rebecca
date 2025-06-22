@@ -1,6 +1,5 @@
 from luma.lcd.device import backlit_device
 from luma.core.interface.serial import spi
-from luma.core.render import canvas
 import luma.lcd.const
 from .rpi5_gpio import GPIO
 from PIL import Image
@@ -19,7 +18,9 @@ class st7789v2(backlit_device):
     ):
         self._offset = offset
 
-        super(st7789v2, self).__init__(luma.lcd.const.st7789, serial_interface, **kwargs)
+        super(st7789v2, self).__init__(
+            luma.lcd.const.st7789, serial_interface, **kwargs
+        )
         self.capabilities(width, height, rotate, mode="RGB")
 
         # COLMOD (3Ah): Interface Pixel Format: 18bit/pixel
@@ -137,9 +138,11 @@ class st7789v2(backlit_device):
 
 
 class _FrameBuffer:
-    def __init__(self, device):
-        self._device = device
-        if device.rotate == 2:
+    def __init__(self, lcd_device):
+        self._device = lcd_device
+        self.depth = 4
+
+        if self._device.rotate == 2:
             self.buffer = np.zeros((self._device._h, self._device._w), dtype=np.uint32)
         else:
             self.buffer = np.zeros((self._device._w, self._device._h), dtype=np.uint32)
@@ -156,8 +159,8 @@ class Zjy169:
 
     def __init__(
         self,
-        port=0,
-        device=0,
+        spi_port=0,
+        spi_device=0,
         gpio_DC=27,
         gpio_RST=17,
         gpio_LIGHT=25,
@@ -166,7 +169,12 @@ class Zjy169:
         rotate=0,
     ):
         self.serial = spi(
-            gpio=GPIO, port=port, device=device, gpio_DC=gpio_DC, gpio_RST=gpio_RST, bus_speed_hz=bus_speed_hz
+            gpio=GPIO,
+            port=spi_port,
+            device=spi_device,
+            gpio_DC=gpio_DC,
+            gpio_RST=gpio_RST,
+            bus_speed_hz=bus_speed_hz,
         )
 
         self.device = st7789v2(

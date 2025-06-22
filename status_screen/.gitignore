@@ -5,3 +5,4 @@ build/
 __pycache__/
 *.py[cod]
 .vscode/
+.ruff_cache/

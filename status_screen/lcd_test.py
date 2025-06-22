@@ -60,11 +60,15 @@ def main():
         for i in range(123):
             with canvas(panel.device) as draw:
                 for i in range(3):
-                    draw.circle(random_point(), random.randint(1, 66), fill=random_color())
+                    draw.circle(
+                        random_point(), random.randint(1, 66), fill=random_color()
+                    )
 
                     x0, y0 = random_point()
                     x1, y1 = random.randint(x0, 321), random.randint(y0, 321)
-                    draw.rectangle((x0, y0, x1, y1), outline=random_color(), fill=random_color())
+                    draw.rectangle(
+                        (x0, y0, x1, y1), outline=random_color(), fill=random_color()
+                    )
 
                     draw.line(
                         (random_point(), random_point()),

@@ -10,8 +10,5 @@ dependencies = [
   "lgpio==0.2.2.0",
   "luma.lcd==2.11.0",
   "numpy",
+  "pyzmq",
 ]
-
-
-[tool.ruff]
-line-length = 123
