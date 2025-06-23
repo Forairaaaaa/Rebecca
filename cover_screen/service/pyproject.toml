@@ -4,11 +4,23 @@ version = "0.1.0"
 description = "Status Screen"
 readme = "README.md"
 requires-python = ">=3.12"
+
 dependencies = [
-  "ruff",
-  "gpiozero==2.0.1",
-  "lgpio==0.2.2.0",
-  "luma.lcd==2.11.0",
   "numpy",
   "pyzmq",
 ]
+
+[dependency-groups]
+dev = [
+  "ruff",
+]
+raspi = [
+  "gpiozero==2.0.1",
+  "lgpio==0.2.2.0",
+  "luma.lcd==2.11.0",
+]
+desktop = [
+]
+
+[tool.uv]
+default-groups = ["dev", "raspi"]

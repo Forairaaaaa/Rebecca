@@ -333,20 +333,31 @@ name = "status-screen"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "numpy" },
+    { name = "pyzmq" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "ruff" },
+]
+raspi = [
     { name = "gpiozero" },
     { name = "lgpio" },
     { name = "luma-lcd" },
-    { name = "numpy" },
-    { name = "pyzmq" },
-    { name = "ruff" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "numpy" },
+    { name = "pyzmq" },
+]
+
+[package.metadata.requires-dev]
+desktop = []
+dev = [{ name = "ruff" }]
+raspi = [
     { name = "gpiozero", specifier = "==2.0.1" },
     { name = "lgpio", specifier = "==0.2.2.0" },
     { name = "luma-lcd", specifier = "==2.11.0" },
-    { name = "numpy" },
-    { name = "pyzmq" },
-    { name = "ruff" },
 ]
