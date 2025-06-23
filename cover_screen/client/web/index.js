@@ -1,7 +1,7 @@
 const puppeteer = require("puppeteer");
 const path = require("path");
 const coverScreen = require("./components/cover-screen");
-const webServer = require("./components/web-server");
+const webServer = require("./components/page-server");
 const logger = require("./components/logger");
 
 const HTML_DIR = path.join(__dirname, "page");
