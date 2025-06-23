@@ -12,6 +12,7 @@
   "dependencies": {
     "express": "^5.1.0",
     "puppeteer": "^24.10.2",
+    "winston": "^3.17.0",
     "zeromq": "^6.4.2"
   }
 }
