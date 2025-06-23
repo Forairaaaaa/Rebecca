@@ -1,31 +1,15 @@
+from utils.logger import logger
 import numpy as np
-import logging
-import time
+import asyncio
+import random
 import json
 import zmq
 import os
-import sys
+import api
 
 
-TEMP_DIR = "/tmp/cover_screen"
-
-
-def create_logger():
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s"))
-    logger.addHandler(ch)
-
-    return logger
-
-
-logger = create_logger()
-
-
-def fb_test(fb_name="fb0"):
-    info_path = f"{TEMP_DIR}/{fb_name}.json"
+async def fb_test_task(fb_name):
+    info_path = f"{api.frame_buffer.TEMP_DIR}/{fb_name}.json"
     if not os.path.exists(info_path):
         logger.error(f"[{fb_name}] info file not found: {info_path}")
         return
@@ -63,16 +47,33 @@ def fb_test(fb_name="fb0"):
             response = socket.recv_json()
             logger.info(f"[{fb_name}] response: {response}")
 
-            time.sleep(1)
+            await asyncio.sleep(random.uniform(0.1, 1))
 
 
-def main():
-    fb_test()
+async def main():
+    logger.info("start socket test")
+
+    fb_names = []
+    for filename in os.listdir(api.frame_buffer.TEMP_DIR):
+        if filename.endswith(".json"):
+            fb_name = filename.replace(".json", "")
+            fb_names.append(fb_name)
+    logger.info(f"available frame buffers: {fb_names}")
+
+    if len(fb_names) == 0:
+        logger.error("no frame buffers found")
+        return
+
+    logger.info("create tasks")
+    tasks = [fb_test_task(fb_name) for fb_name in fb_names]
+
+    logger.info("start tasks")
+    await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
     try:
-        main()
+        asyncio.run(main())
     except KeyboardInterrupt:
         pass
     except Exception as e:
