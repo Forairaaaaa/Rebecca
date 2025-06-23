@@ -1,6 +1,6 @@
+from utils.logger import logger
 from datetime import datetime
 from typing import Any
-import utils.logger
 import numpy as np
 import json
 import zmq
@@ -18,29 +18,27 @@ class FrameBuffer:
         self._name = name
         self._panel = panel
         self._port = -1
-        self._logger = utils.logger.create(tag=self._name)
         self._zmq_socket = self._create_zmq_socket()
         self._create_info_file()
 
     def _create_zmq_socket(self):
-        self._logger.info("create zmq socket")
+        logger.info(f"[{self._name}] create zmq socket")
 
         context = zmq.Context()
         socket = context.socket(zmq.REP)
 
         self._port = socket.bind_to_random_port("tcp://*")
-        self._logger.info(f"bind to port: {self._port}")
+        logger.info(f"[{self._name}] bind to port: {self._port}")
 
         return socket
 
     def _create_info_file(self):
-        self._logger.info("create info file")
+        logger.info(f"[{self._name}] create info file")
 
         os.makedirs(TEMP_DIR, exist_ok=True)
 
         buffer_shape = self._panel.frame_buffer.buffer.shape
         buffer_itemsize = self._panel.frame_buffer.buffer.itemsize
-        print(buffer_shape)
 
         info_path = f"{TEMP_DIR}/{self._name}.json"
         caches.append(info_path)
@@ -58,7 +56,7 @@ class FrameBuffer:
                 f,
             )
 
-        self._logger.info(f"write info file: {info_path}")
+        logger.info(f"[{self._name}] write info file: {info_path}")
 
     def update(self):
         raw_data: Any = self._zmq_socket.recv()
@@ -71,7 +69,7 @@ class FrameBuffer:
             )
             self._panel.frame_buffer.push()
         except Exception as e:
-            self._logger.error(f"error: {e}")
+            logger.error(f"[{self._name}] error: {e}")
             self._zmq_socket.send_json({"status": -1, "msg": str(e)})
             return
 

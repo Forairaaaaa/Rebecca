@@ -1,13 +1,10 @@
+from utils.logger import logger
 from .lcd import PyGamePanel
-import utils.logger
 import api
 
 
-logger = utils.logger.create(tag="desktop")
-
-
 def main():
-    logger.info("start cover screen service")
+    logger.info("start desktop cover screen service")
 
     logger.info("create panel")
     panel = PyGamePanel(width=280, height=240, scale=1)
