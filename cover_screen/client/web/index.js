@@ -35,8 +35,8 @@ const INTERVAL = 200; // 毫秒间隔
   process.on("SIGINT", async () => {
     logger.info("shutting down...");
     clearInterval();
-    await canvasCapturer.close();
-    await coverScreen.close();
+    await canvasCapturer.stop();
+    await coverScreen.stop();
     pageServer.stop();
     process.exit(0);
   });

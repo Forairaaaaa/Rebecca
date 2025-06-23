@@ -56,12 +56,12 @@ function getScreens() {
   return screens;
 }
 
-async function close() {
-  logger.info("close cover screen");
+async function stop() {
+  logger.info("stop cover screen");
   for (const screen of screens) {
     await screen.socket.close();
   }
   screens = [];
 }
 
-module.exports = { connect, getScreens, close };
+module.exports = { connect, getScreens, stop };

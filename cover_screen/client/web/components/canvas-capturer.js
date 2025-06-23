@@ -23,13 +23,13 @@ async function capture(canvasId) {
   }, canvasId);
 }
 
-async function close() {
+async function stop() {
   if (browser) {
-    logger.info("close canvas capturer");
+    logger.info("stop canvas capturer");
     await browser.close();
     browser = null;
     page = null;
   }
 }
 
-module.exports = { start, capture, close };
+module.exports = { start, capture, stop };
