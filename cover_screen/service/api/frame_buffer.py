@@ -12,10 +12,10 @@ TEMP_DIR = "/tmp/cover_screen"
 
 
 class FrameBuffer:
-    def __init__(self, name, panel):
+    def __init__(self, name, panel, port=None):
         self._name = name
         self._panel = panel
-        self._port = -1
+        self._port = port
         self._zmq_socket = self._create_zmq_socket()
         self._create_info_file()
 
@@ -25,7 +25,10 @@ class FrameBuffer:
         context = zmq.asyncio.Context()
         socket = context.socket(zmq.REP)
 
-        self._port = socket.bind_to_random_port("tcp://*")
+        if self._port is None:
+            self._port = socket.bind_to_random_port("tcp://*")
+        else:
+            socket.bind(f"tcp://*:{self._port}")
         logger.info(f"[{self._name}] bind to port: {self._port}")
 
         return socket
