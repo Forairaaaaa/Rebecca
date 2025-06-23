@@ -3,14 +3,12 @@ from datetime import datetime
 from typing import Any
 import numpy as np
 import json
-import zmq
 import os
+import zmq
+import zmq.asyncio
 
 
 TEMP_DIR = "/tmp/cover_screen"
-
-
-caches = []
 
 
 class FrameBuffer:
@@ -24,7 +22,7 @@ class FrameBuffer:
     def _create_zmq_socket(self):
         logger.info(f"[{self._name}] create zmq socket")
 
-        context = zmq.Context()
+        context = zmq.asyncio.Context()
         socket = context.socket(zmq.REP)
 
         self._port = socket.bind_to_random_port("tcp://*")
@@ -41,8 +39,6 @@ class FrameBuffer:
         buffer_itemsize = self._panel.frame_buffer.buffer.itemsize
 
         info_path = f"{TEMP_DIR}/{self._name}.json"
-        caches.append(info_path)
-
         with open(info_path, "w") as f:
             json.dump(
                 {
@@ -58,8 +54,8 @@ class FrameBuffer:
 
         logger.info(f"[{self._name}] write info file: {info_path}")
 
-    def update(self):
-        raw_data: Any = self._zmq_socket.recv()
+    async def update(self):
+        raw_data: Any = await self._zmq_socket.recv()
 
         try:
             src = np.frombuffer(raw_data, dtype=np.uint32)
@@ -70,10 +66,10 @@ class FrameBuffer:
             self._panel.frame_buffer.push()
         except Exception as e:
             logger.error(f"[{self._name}] error: {e}")
-            self._zmq_socket.send_json({"status": -1, "msg": str(e)})
+            await self._zmq_socket.send_json({"status": -1, "msg": str(e)})
             return
 
-        self._zmq_socket.send_json({"status": 0, "msg": "ok👌"})
+        await self._zmq_socket.send_json({"status": 0, "msg": "ok👌"})
 
 
 def cleanup():
