@@ -17,6 +17,7 @@ class _FrameBuffer:
 class PyGamePanel:
     def __init__(self, width=240, height=280, scale=1, rotate=0):
         self.device = pygame(width=width, height=height, scale=scale, rotate=rotate)
+        self.frame_buffer.push()
 
     @property
     def frame_buffer(self):
