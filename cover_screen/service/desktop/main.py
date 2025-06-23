@@ -1,6 +1,7 @@
 from multiprocessing import Process
 from utils.logger import logger
 from .lcd import PyGamePanel
+import argparse
 import asyncio
 import api
 
@@ -22,13 +23,15 @@ def process_worker(name):
     asyncio.run(worker(name))
 
 
-def main():
+def main(panel_num):
     try:
         logger.info("start desktop cover screen service")
 
         # pygame can only create a window, wrap worker with process
         logger.info("create processes")
-        processes = [Process(target=process_worker, args=(f"fb{i}",)) for i in range(2)]
+        processes = [
+            Process(target=process_worker, args=(f"fb{i}",)) for i in range(panel_num)
+        ]
         for p in processes:
             p.start()
 
@@ -45,4 +48,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--panel-num", type=int, default=2)
+    args = parser.parse_args()
+
+    main(args.panel_num)
