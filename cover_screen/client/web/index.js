@@ -1,6 +1,6 @@
 const canvasCapturer = require("./components/canvas-capturer");
 const coverScreen = require("./components/cover-screen");
-const webServer = require("./components/page-server");
+const pageServer = require("./components/page-server");
 const logger = require("./components/logger");
 const path = require("path");
 
@@ -11,7 +11,7 @@ const INTERVAL = 200; // 毫秒间隔
 
 (async () => {
   await coverScreen.connect();
-  webServer.start(HTML_DIR, PORT);
+  pageServer.start(HTML_DIR, PORT);
   await canvasCapturer.start(PORT);
 
   // 周期获取 Canvas 像素数据并发送
@@ -37,7 +37,7 @@ const INTERVAL = 200; // 毫秒间隔
     clearInterval();
     await canvasCapturer.close();
     await coverScreen.close();
-    webServer.stop();
+    pageServer.stop();
     process.exit(0);
   });
 })();
