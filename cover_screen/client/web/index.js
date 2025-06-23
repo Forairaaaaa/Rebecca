@@ -1,8 +1,8 @@
-const puppeteer = require("puppeteer");
-const path = require("path");
+const canvasCapturer = require("./components/canvas-capturer");
 const coverScreen = require("./components/cover-screen");
 const webServer = require("./components/page-server");
 const logger = require("./components/logger");
+const path = require("path");
 
 const HTML_DIR = path.join(__dirname, "page");
 const PORT = 3000; // 本地服务器端口
@@ -11,25 +11,13 @@ const INTERVAL = 200; // 毫秒间隔
 
 (async () => {
   await coverScreen.connect();
-  logger.info(`screen num: ${coverScreen.getScreens().length}`);
-
   webServer.start(HTML_DIR, PORT);
-
-  // 启动 Puppeteer 无头浏览器
-  const browser = await puppeteer.launch({ headless: "new" });
-  const page = await browser.newPage();
-  await page.goto(`http://localhost:${PORT}`);
+  await canvasCapturer.start(PORT);
 
   // 周期获取 Canvas 像素数据并发送
   setInterval(async () => {
     try {
-      const rgba = await page.evaluate((id) => {
-        const canvas = document.getElementById(id);
-        if (!canvas) return null;
-        const ctx = canvas.getContext("2d");
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        return Array.from(imgData.data); // 转为普通数组以便传输
-      }, CANVAS_ID);
+      const rgba = await canvasCapturer.capture(CANVAS_ID);
 
       if (rgba) {
         for (const screen of coverScreen.getScreens()) {
@@ -45,9 +33,9 @@ const INTERVAL = 200; // 毫秒间隔
 
   // 捕捉退出信号
   process.on("SIGINT", async () => {
-    console.log("Shutting down...");
+    logger.info("shutting down...");
     clearInterval();
-    await browser.close();
+    await canvasCapturer.close();
     await coverScreen.close();
     webServer.stop();
     process.exit(0);

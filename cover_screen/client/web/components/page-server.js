@@ -4,7 +4,7 @@ const logger = require("./logger");
 let server = null;
 
 function start(htmlDir, port = 3000) {
-  logger.info("start web server");
+  logger.info("start page server");
   stop();
   const app = express();
   app.use(express.static(htmlDir));
@@ -15,6 +15,7 @@ function start(htmlDir, port = 3000) {
 
 function stop() {
   if (server) {
+    logger.info("stop page server");
     server.close();
     server = null;
   }

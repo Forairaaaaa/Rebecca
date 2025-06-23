@@ -49,6 +49,7 @@ async function connect(fbTempDir = "/tmp/cover_screen") {
   }
   loadFrameBuffers(fbTempDir);
   await createSockets();
+  logger.info(`screen num: ${screens.length}`);
 }
 
 function getScreens() {
