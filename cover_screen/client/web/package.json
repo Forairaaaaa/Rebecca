@@ -1,0 +1,17 @@
+{
+  "name": "cover-screen",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Forairaaaaa",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.1.0",
+    "puppeteer": "^24.10.2",
+    "zeromq": "^6.4.2"
+  }
+}

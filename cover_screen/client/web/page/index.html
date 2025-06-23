@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Canvas Demo</title>
+  </head>
+  <body>
+    <canvas id="cover-screen-0" width="280" height="240"></canvas>
+    <script>
+      const canvas = document.getElementById("cover-screen-0");
+      const ctx = canvas.getContext("2d");
+
+      setInterval(() => {
+        ctx.fillStyle = `rgb(${Math.random() * 255},${Math.random() * 255},${
+          Math.random() * 255
+        })`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }, 200);
+    </script>
+  </body>
+</html>
