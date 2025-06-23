@@ -76,3 +76,10 @@ class FrameBuffer:
             return
 
         self._zmq_socket.send_json({"status": 0, "msg": "ok👌"})
+
+
+def cleanup():
+    for filename in os.listdir(TEMP_DIR):
+        filepath = os.path.join(TEMP_DIR, filename)
+        if os.path.isfile(filepath):
+            os.remove(filepath)

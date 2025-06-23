@@ -1,7 +1,6 @@
 from .lcd import PyGamePanel
 import utils.logger
 import api
-import os
 
 
 logger = utils.logger.create(tag="desktop")
@@ -29,7 +28,4 @@ if __name__ == "__main__":
         logger.error(e)
 
     logger.info("cleanup")
-    for filename in os.listdir(api.frame_buffer.TEMP_DIR):
-        filepath = os.path.join(api.frame_buffer.TEMP_DIR, filename)
-        if os.path.isfile(filepath):
-            os.remove(filepath)
+    api.frame_buffer.cleanup()
