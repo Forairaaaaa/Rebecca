@@ -1,7 +1,5 @@
-from luma.emulator.device import pygame
-from luma.core.render import canvas
+from .lcd import PyGamePanel
 import utils.logger
-
 
 logger = utils.logger.create(tag="desktop")
 
