@@ -54,7 +54,7 @@ class FrameBuffer:
 
         logger.info(f"[{self._name}] write info file: {info_path}")
 
-    async def update(self):
+    async def listen(self):
         raw_data: Any = await self._zmq_socket.recv()
 
         try:

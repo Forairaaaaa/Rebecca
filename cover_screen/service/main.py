@@ -1,9 +1,15 @@
 from utils.logger import logger
 import utils.lcd as lcd
+import asyncio
 import api
 
 
-def main():
+async def worker(fb):
+    while True:
+        await fb.listen()
+
+
+async def main():
     logger.info("start cover screen service")
 
     logger.info("create panels")
@@ -13,14 +19,13 @@ def main():
     logger.info("create frame buffers")
     fbs = [api.FrameBuffer(f"fb{i}", panels[i]) for i in range(len(panels))]
 
-    while True:
-        for fb in fbs:
-            fb.update()
+    tasks = [worker(fb) for fb in fbs]
+    await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
     try:
-        main()
+        asyncio.run(main())
     except KeyboardInterrupt:
         pass
     except Exception as e:

@@ -15,7 +15,7 @@ async def worker(name):
     fb = api.FrameBuffer(name=name, panel=panel)
 
     while True:
-        await fb.update()
+        await fb.listen()
 
 
 def process_worker(name):
