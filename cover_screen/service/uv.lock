@@ -332,12 +332,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/b5/99/dd50af8200e224ce9
 name = "status-screen"
 version = "0.1.0"
 source = { virtual = "." }
-dependencies = [
+
+[package.dev-dependencies]
+desktop = [
     { name = "numpy" },
     { name = "pyzmq" },
 ]
-
-[package.dev-dependencies]
 dev = [
     { name = "ruff" },
 ]
@@ -348,13 +348,12 @@ raspi = [
 ]
 
 [package.metadata]
-requires-dist = [
+
+[package.metadata.requires-dev]
+desktop = [
     { name = "numpy" },
     { name = "pyzmq" },
 ]
-
-[package.metadata.requires-dev]
-desktop = []
 dev = [{ name = "ruff" }]
 raspi = [
     { name = "gpiozero", specifier = "==2.0.1" },
