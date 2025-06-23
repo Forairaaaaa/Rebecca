@@ -1,10 +1,9 @@
 from datetime import datetime
 from typing import Any
 import utils.lcd as lcd
+import utils.logger
 import numpy as np
-import logging
 import json
-import sys
 import zmq
 import os
 
@@ -12,18 +11,7 @@ import os
 TEMP_DIR = "/tmp/cover_screen"
 
 
-def create_logger():
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s"))
-    logger.addHandler(ch)
-
-    return logger
-
-
-logger = create_logger()
+logger = utils.logger.create()
 
 
 class CoverScreenFrameBuffer:
@@ -31,22 +19,23 @@ class CoverScreenFrameBuffer:
         self._name = name
         self._panel = panel
         self._port = -1
+        self._logger = utils.logger.create(tag=self._name)
         self._zmq_socket = self._create_zmq_socket()
         self._create_info_file()
 
     def _create_zmq_socket(self):
-        logger.info(f"[{self._name}] create zmq socket")
+        self._logger.info("create zmq socket")
 
         context = zmq.Context()
         socket = context.socket(zmq.REP)
 
         self._port = socket.bind_to_random_port("tcp://*")
-        logger.info(f"[{self._name}] bind to port: {self._port}")
+        self._logger.info(f"bind to port: {self._port}")
 
         return socket
 
     def _create_info_file(self):
-        logger.info(f"[{self._name}] create info file")
+        self._logger.info("create info file")
 
         os.makedirs(TEMP_DIR, exist_ok=True)
 
@@ -64,7 +53,7 @@ class CoverScreenFrameBuffer:
                 f,
             )
 
-        logger.info(f"[{self._name}] write info file: {info_path}")
+        self._logger.info(f"write info file: {info_path}")
 
     def update(self):
         raw_data: Any = self._zmq_socket.recv()
@@ -77,7 +66,7 @@ class CoverScreenFrameBuffer:
             )
             self._panel.frame_buffer.push()
         except Exception as e:
-            logger.error(f"[{self._name}] error: {e}")
+            self._logger.error(f"error: {e}")
             self._zmq_socket.send_json({"status": -1, "msg": str(e)})
             return
 
@@ -85,6 +74,8 @@ class CoverScreenFrameBuffer:
 
 
 def main():
+    logger.info("start cover screen service")
+
     logger.info("create panels")
     panels = []
     panels.append(lcd.Zjy169(gpio_DC=27, gpio_RST=17, gpio_LIGHT=25, rotate=3))

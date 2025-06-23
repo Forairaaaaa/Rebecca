@@ -6,4 +6,4 @@ https://luma-emulator.readthedocs.io/en/latest/install.html
 https://docs.astral.sh/uv/concepts/projects
 
 
-uv sync --only-group desktop
+uv run --only-group desktop -m desktop.main
