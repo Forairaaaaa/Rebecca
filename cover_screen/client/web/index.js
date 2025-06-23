@@ -1,7 +1,7 @@
 const puppeteer = require("puppeteer");
 const path = require("path");
-const express = require("express");
 const coverScreen = require("./components/cover-screen");
+const webServer = require("./components/web-server");
 const logger = require("./components/logger");
 
 const HTML_DIR = path.join(__dirname, "page");
@@ -11,15 +11,9 @@ const INTERVAL = 200; // 毫秒间隔
 
 (async () => {
   await coverScreen.connect();
-  logger.info("cover screen connected");
   logger.info(`screen num: ${coverScreen.getScreens().length}`);
 
-  // 启动静态服务器提供 HTML 页面
-  const app = express();
-  app.use(express.static(HTML_DIR));
-  const server = app.listen(PORT, () => {
-    console.log(`Serving ${HTML_DIR} at http://localhost:${PORT}`);
-  });
+  webServer.start(HTML_DIR, PORT);
 
   // 启动 Puppeteer 无头浏览器
   const browser = await puppeteer.launch({ headless: "new" });
@@ -54,8 +48,8 @@ const INTERVAL = 200; // 毫秒间隔
     console.log("Shutting down...");
     clearInterval();
     await browser.close();
-    await sock.close();
-    server.close();
+    await coverScreen.close();
+    webServer.stop();
     process.exit(0);
   });
 })();

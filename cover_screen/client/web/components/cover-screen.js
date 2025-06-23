@@ -44,7 +44,9 @@ async function createSockets() {
 
 async function connect(fbTempDir = "/tmp/cover_screen") {
   logger.info("connect to cover screen");
-  screens = [];
+  if (screens.length > 0) {
+    await close();
+  }
   loadFrameBuffers(fbTempDir);
   await createSockets();
 }
@@ -53,4 +55,12 @@ function getScreens() {
   return screens;
 }
 
-module.exports = { connect, getScreens };
+async function close() {
+  logger.info("close cover screen");
+  for (const screen of screens) {
+    await screen.socket.close();
+  }
+  screens = [];
+}
+
+module.exports = { connect, getScreens, close };
