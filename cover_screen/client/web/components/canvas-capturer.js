@@ -18,7 +18,7 @@ async function start(port = 3000) {
   await _page.goto(`http://localhost:${port}`);
 
   await _page.addScriptTag({
-    url: "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",
+    url: "https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.11/dist/html2canvas-pro.min.js",
   });
 }
 
