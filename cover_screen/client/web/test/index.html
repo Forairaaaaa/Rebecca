@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Canvas Demo</title>
+</head>
+
+<body>
+  <canvas id="cover-screen-0" width="280" height="240"></canvas>
+  <canvas id="cover-screen-1" width="280" height="240"></canvas>
+  <script>
+    const ws = new WebSocket("ws://" + window.location.host + "/ws");
+    const canvas0 = document.getElementById("cover-screen-0");
+    const ctx0 = canvas0.getContext("2d");
+    const canvas1 = document.getElementById("cover-screen-1");
+    const ctx1 = canvas1.getContext("2d");
+
+    setInterval(() => {
+      ctx0.fillStyle = `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255
+        })`;
+      ctx0.fillRect(0, 0, canvas0.width, canvas0.height);
+      ws.send(JSON.stringify({ action: "refresh", canvasId: "cover-screen-0" }));
+
+      ctx1.fillStyle = `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255
+        })`;
+      ctx1.fillRect(0, 0, canvas1.width, canvas1.height);
+      ws.send(JSON.stringify({ action: "refresh", canvasId: "cover-screen-1" }));
+    }, 200);
+  </script>
+</body>
+
+</html>
