@@ -43,13 +43,12 @@ async function _createSockets() {
 }
 
 async function connect(fbTempDir = "/tmp/cover_screen") {
-  logger.info("connect to cover screen");
+  logger.info("connect cover screens");
   if (_screens.length > 0) {
     await close();
   }
   _loadFrameBuffers(fbTempDir);
   await _createSockets();
-  logger.info(`screen num: ${_screens.length}`);
 }
 
 function getScreens() {
