@@ -1,14 +1,14 @@
 const puppeteer = require("puppeteer");
 const logger = require("./logger");
 
-let browser = null;
-let page = null;
+let _browser = null;
+let _page = null;
 
 async function start(port = 3000) {
   logger.info("start canvas capturer");
-  browser = await puppeteer.launch({ headless: "new" });
-  page = await browser.newPage();
-  await page.goto(`http://localhost:${port}`);
+  _browser = await puppeteer.launch({ headless: "new" });
+  _page = await _browser.newPage();
+  await _page.goto(`http://localhost:${port}`);
 }
 
 /**
@@ -17,7 +17,7 @@ async function start(port = 3000) {
  */
 async function capture(canvasId) {
   try {
-    return await page.evaluate((id) => {
+    return await _page.evaluate((id) => {
       const canvas = document.getElementById(id);
       if (!canvas) {
         return null;
@@ -33,11 +33,11 @@ async function capture(canvasId) {
 }
 
 async function stop() {
-  if (browser) {
+  if (_browser) {
     logger.info("stop canvas capturer");
-    await browser.close();
-    browser = null;
-    page = null;
+    await _browser.close();
+    _browser = null;
+    _page = null;
   }
 }
 

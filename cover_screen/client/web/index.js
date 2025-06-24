@@ -5,9 +5,7 @@ const logger = require("./components/logger");
 const path = require("path");
 
 const HTML_DIR = path.join(__dirname, "page");
-const PORT = 3000; // 本地服务器端口
-const CANVAS_ID = "cover-screen-0"; // 要获取的 canvas ID
-const INTERVAL = 200; // 毫秒间隔
+const PORT = 3000;
 
 (async () => {
   await coverScreen.connect();
@@ -27,7 +25,6 @@ const INTERVAL = 200; // 毫秒间隔
     }
   });
 
-  // 捕捉退出信号
   process.on("SIGINT", async () => {
     logger.info("shutting down...");
     clearInterval();

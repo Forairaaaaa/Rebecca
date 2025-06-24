@@ -3,9 +3,9 @@ const path = require("path");
 const zmq = require("zeromq");
 const fs = require("fs");
 
-let screens = [];
+let _screens = [];
 
-function loadFrameBuffers(dir) {
+function _loadFrameBuffers(dir) {
   logger.info(`load screen from ${dir}`);
 
   const files = fs.readdirSync(dir);
@@ -15,18 +15,18 @@ function loadFrameBuffers(dir) {
       try {
         const data = fs.readFileSync(fullPath, "utf-8");
         const json = JSON.parse(data);
-        screens.push(json);
+        _screens.push(json);
       } catch (err) {
         console.error(`Failed to load ${file}:`, err);
       }
     }
   }
 
-  console.log(screens);
+  console.log(_screens);
 }
 
-async function createSockets() {
-  for (const screen of screens) {
+async function _createSockets() {
+  for (const screen of _screens) {
     const zmq_port = `tcp://127.0.0.1:${screen.port}`;
 
     logger.info(`connect to ${zmq_port}`);
@@ -44,24 +44,24 @@ async function createSockets() {
 
 async function connect(fbTempDir = "/tmp/cover_screen") {
   logger.info("connect to cover screen");
-  if (screens.length > 0) {
+  if (_screens.length > 0) {
     await close();
   }
-  loadFrameBuffers(fbTempDir);
-  await createSockets();
-  logger.info(`screen num: ${screens.length}`);
+  _loadFrameBuffers(fbTempDir);
+  await _createSockets();
+  logger.info(`screen num: ${_screens.length}`);
 }
 
 function getScreens() {
-  return screens;
+  return _screens;
 }
 
 async function stop() {
   logger.info("stop cover screen");
-  for (const screen of screens) {
+  for (const screen of _screens) {
     await screen.socket.close();
   }
-  screens = [];
+  _screens = [];
 }
 
 module.exports = { connect, getScreens, stop };
