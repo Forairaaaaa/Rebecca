@@ -42,6 +42,8 @@ async function main() {
       } else {
         logger.error(`invalid canvas id ${canvasId} data`);
       }
+    } else {
+      logger.warn(`invalid canvas id ${canvasId}`);
     }
   });
 
