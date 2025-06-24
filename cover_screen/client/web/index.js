@@ -23,7 +23,7 @@ async function main() {
   console.log(screenCanvasMap);
 
   // Start page server
-  pageServer.start(HTML_DIR, PORT);
+  await pageServer.start(HTML_DIR, PORT);
 
   // Start canvas capturer
   await canvasCapturer.start(PORT);
@@ -54,7 +54,7 @@ async function main() {
   // Handle shutdown
   logger.info("shutting down...");
   await canvasCapturer.stop();
-  pageServer.stop();
+  await pageServer.stop();
   await coverScreen.stop();
   process.exit(0);
 }

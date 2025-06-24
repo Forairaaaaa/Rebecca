@@ -4,9 +4,7 @@ const logger = require("./logger");
 
 let _server = null;
 let _wss = null;
-let _onRefresh = (canvasId) => {
-  logger.warn("empty onRefresh callback");
-};
+let _onRefresh = null;
 
 function _handleBridgeMsg(ws, message) {
   try {
@@ -15,52 +13,72 @@ function _handleBridgeMsg(ws, message) {
 
     // Handle canvas refresh notification
     if (msg.action === "refresh" && msg.canvasId) {
-      _onRefresh(msg.canvasId);
+      if (_onRefresh) {
+        _onRefresh(msg.canvasId);
+      }
     }
   } catch (err) {
     logger.error(`handle msg error: ${err}`);
   }
 }
 
-function start(htmlDir, port = 3000) {
+async function start(htmlDir, port = 3000) {
   logger.info("start page server");
-  stop();
+  await stop();
 
-  // Create web server
-  const app = express();
-  app.use(express.static(htmlDir));
-  _server = app.listen(port, () => {
-    logger.info(`serving ${htmlDir} at http://localhost:${port}`);
-  });
+  return new Promise((resolve, reject) => {
+    // Create web server
+    const app = express();
+    app.use(express.static(htmlDir));
 
-  // Create websocket for msg bridge
-  _wss = new WebSocket.Server({ noServer: true });
-  _server.on("upgrade", (request, socket, head) => {
-    if (request.url === "/ws") {
-      _wss.handleUpgrade(request, socket, head, (ws) => {
-        _wss.emit("connection", ws, request);
+    _server = app.listen(port, () => {
+      logger.info(`serving ${htmlDir} at http://localhost:${port}`);
+      resolve();
+    });
+
+    _server.on("error", reject);
+
+    // Create websocket for msg bridge
+    _wss = new WebSocket.Server({ noServer: true });
+
+    _server.on("upgrade", (request, socket, head) => {
+      if (request.url === "/ws") {
+        _wss.handleUpgrade(request, socket, head, (ws) => {
+          _wss.emit("connection", ws, request);
+        });
+      } else {
+        socket.destroy();
+      }
+    });
+
+    _wss.on("connection", (ws) => {
+      logger.info("ws client connected");
+      ws.on("message", (message) => {
+        _handleBridgeMsg(ws, message);
       });
-    } else {
-      socket.destroy();
-    }
-  });
-
-  _wss.on("connection", (ws) => {
-    logger.info("client connected");
-    ws.on("message", (message) => {
-      _handleBridgeMsg(ws, message);
     });
   });
 }
 
-function stop() {
-  if (_server) {
-    logger.info("stop page server");
-    _wss.close();
-    _server.close();
-    _server = null;
-    _wss = null;
-  }
+async function stop() {
+  return new Promise((resolve, reject) => {
+    if (_server) {
+      logger.info("stop page server");
+      // _wss.close();
+      _server.close((err) => {
+        if (err) {
+          logger.error(`stop page server error: ${err}`);
+          reject(err);
+        } else {
+          _server = null;
+          _wss = null;
+          resolve();
+        }
+      });
+    } else {
+      resolve();
+    }
+  });
 }
 
 /**
