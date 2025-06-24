@@ -11,16 +11,25 @@ async function start(port = 3000) {
   await page.goto(`http://localhost:${port}`);
 }
 
+/**
+ * @param {string} canvasId
+ * @returns {Promise<Uint8Array>} canvas RGBA data
+ */
 async function capture(canvasId) {
-  return await page.evaluate((id) => {
-    const canvas = document.getElementById(id);
-    if (!canvas) {
-      return null;
-    }
-    const ctx = canvas.getContext("2d");
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    return Array.from(imgData.data);
-  }, canvasId);
+  try {
+    return await page.evaluate((id) => {
+      const canvas = document.getElementById(id);
+      if (!canvas) {
+        return null;
+      }
+      const ctx = canvas.getContext("2d");
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      return Array.from(imgData.data);
+    }, canvasId);
+  } catch (err) {
+    logger.error(`capture canvas ${canvasId} error: ${err}`);
+    return null;
+  }
 }
 
 async function stop() {

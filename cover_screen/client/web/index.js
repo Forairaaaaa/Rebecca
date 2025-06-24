@@ -11,25 +11,21 @@ const INTERVAL = 200; // 毫秒间隔
 
 (async () => {
   await coverScreen.connect();
+
   pageServer.start(HTML_DIR, PORT);
+
   await canvasCapturer.start(PORT);
 
-  // 周期获取 Canvas 像素数据并发送
-  setInterval(async () => {
-    try {
-      const rgba = await canvasCapturer.capture(CANVAS_ID);
-
-      if (rgba) {
-        for (const screen of coverScreen.getScreens()) {
-          await screen.push(Buffer.from(rgba));
-        }
-      } else {
-        console.warn("Canvas not found");
+  pageServer.onRefresh(async (canvasId) => {
+    const rgba = await canvasCapturer.capture(canvasId);
+    if (rgba) {
+      for (const screen of coverScreen.getScreens()) {
+        await screen.push(Buffer.from(rgba));
       }
-    } catch (err) {
-      console.error("Error capturing canvas:", err);
+    } else {
+      logger.error(`invalid canvas id ${canvasId} data`);
     }
-  }, INTERVAL);
+  });
 
   // 捕捉退出信号
   process.on("SIGINT", async () => {
