@@ -4,7 +4,7 @@ const pageServer = require("./components/page-server");
 const logger = require("./components/logger");
 const path = require("path");
 
-const HTML_DIR = path.join(__dirname, "page");
+const HTML_DIR = path.join(__dirname, "page/out");
 const PORT = 4321;
 
 (async () => {
@@ -29,6 +29,7 @@ const PORT = 4321;
   await canvasCapturer.start(PORT);
 
   // Handle canvas refresh
+  logger.info("setup canvas refresh callback");
   pageServer.onRefresh(async (canvasId) => {
     // Check map
     if (screenCanvasMap.has(canvasId)) {
@@ -47,7 +48,6 @@ const PORT = 4321;
   // Handle shutdown
   process.on("SIGINT", async () => {
     logger.info("shutting down...");
-    clearInterval();
     await canvasCapturer.stop();
     await coverScreen.stop();
     pageServer.stop();

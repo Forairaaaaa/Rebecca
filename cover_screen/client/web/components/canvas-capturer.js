@@ -6,9 +6,13 @@ let _page = null;
 
 async function start(port = 3000) {
   logger.info("start canvas capturer");
+
   _browser = await puppeteer.launch({ headless: "new" });
   _page = await _browser.newPage();
+
   await _page.goto(`http://localhost:${port}`);
+
+  await _page.addScriptTag({ url: 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js', });
 }
 
 /**
@@ -17,11 +21,30 @@ async function start(port = 3000) {
  */
 async function capture(canvasId) {
   try {
-    return await _page.evaluate((id) => {
-      const canvas = document.getElementById(id);
-      if (!canvas) {
-        return null;
+    return await _page.evaluate(async (id) => {
+      const el = document.getElementById(id);
+      if (!el) {
+        throw new Error(`element ${id} not found`);
       }
+
+      let canvas = null;
+
+      // If element is canvas, use it directly
+      if (el.tagName.toLowerCase() == "canvas") {
+        canvas = el;
+      }
+      // If not, convert to canvas
+      else {
+        if (!window.html2canvas) {
+          throw new Error("html2canvas is not loaded");
+        }
+        canvas = await html2canvas(el, { backgroundColor: null });
+      }
+
+      if (!canvas) {
+        throw new Error(`get canvas ${id} error`);
+      }
+
       const ctx = canvas.getContext("2d");
       const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       return Array.from(imgData.data);
