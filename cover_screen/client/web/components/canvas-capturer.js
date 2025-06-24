@@ -7,12 +7,19 @@ let _page = null;
 async function start(port = 3000) {
   logger.info("start canvas capturer");
 
-  _browser = await puppeteer.launch({ headless: "new" });
+  _browser = await puppeteer.launch({
+    headless: "new",
+    handleSIGINT: false,
+    handleSIGHUP: false,
+    handleSIGTERM: false,
+  });
   _page = await _browser.newPage();
 
   await _page.goto(`http://localhost:${port}`);
 
-  await _page.addScriptTag({ url: 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js', });
+  await _page.addScriptTag({
+    url: "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",
+  });
 }
 
 /**
@@ -58,6 +65,7 @@ async function capture(canvasId) {
 async function stop() {
   if (_browser) {
     logger.info("stop canvas capturer");
+    await _page.close();
     await _browser.close();
     _browser = null;
     _page = null;

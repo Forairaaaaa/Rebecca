@@ -56,6 +56,7 @@ function start(htmlDir, port = 3000) {
 function stop() {
   if (_server) {
     logger.info("stop page server");
+    _wss.close();
     _server.close();
     _server = null;
     _wss = null;

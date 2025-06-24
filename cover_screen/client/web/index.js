@@ -7,14 +7,14 @@ const path = require("path");
 const HTML_DIR = path.join(__dirname, "page/out");
 const PORT = 4321;
 
-(async () => {
+async function main() {
   logger.info("start cover screen web client");
 
   // Try connect cover screens
   await coverScreen.connect();
   logger.info(`screen num: ${coverScreen.getScreens().length}`);
 
-  // Create screen canvas ma
+  // Create screen canvas map
   logger.info("create screen canvas map");
   const screenCanvasMap = new Map();
   for (let i = 0; i < coverScreen.getScreens().length; i++) {
@@ -45,12 +45,21 @@ const PORT = 4321;
     }
   });
 
-  // Handle shutdown
-  process.on("SIGINT", async () => {
-    logger.info("shutting down...");
-    await canvasCapturer.stop();
-    await coverScreen.stop();
-    pageServer.stop();
-    process.exit(0);
+  await new Promise((resolve) => {
+    process.on("SIGINT", resolve);
+    process.on("SIGTERM", resolve);
+    logger.info("client running...");
   });
-})();
+
+  // Handle shutdown
+  logger.info("shutting down...");
+  await canvasCapturer.stop();
+  pageServer.stop();
+  await coverScreen.stop();
+  process.exit(0);
+}
+
+main().catch((err) => {
+  logger.error("client error:", err);
+  process.exit(1);
+});
