@@ -9,26 +9,33 @@ interface ClockProps {
 }
 
 export default function TemplateClock({ canvasId }: ClockProps) {
-  const [time, setTime] = useState(new Date());
+  const getTime = (time: Date) => {
+    return `${time.getHours()}:${time.getMinutes()}`;
+  };
 
-  // Update time every second
+  const [time, setTime] = useState("");
+
+  // Check if time(hh:mm) changes every second
   useEffect(() => {
     const interval = setInterval(() => {
-      setTime(new Date());
+      const now = getTime(new Date());
+      if (now !== time) {
+        setTime(now);
+      }
     }, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Notify refresh when shit changes
+  // Notify refresh when time changes
   useEffect(() => {
     notifyRefresh(canvasId);
   }, [time]);
 
   return (
     <div className="h-full w-full flex flex-col items-center justify-center">
-      <p
-        className={`text-amber-50 text-8xl font-bold  ${rajdhani.className}`}
-      >{`${time.getHours()}:${time.getMinutes()}`}</p>
+      <p className={`text-amber-50 text-8xl font-bold  ${rajdhani.className}`}>
+        {time}
+      </p>
     </div>
   );
 }
