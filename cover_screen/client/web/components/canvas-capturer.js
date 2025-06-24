@@ -1,3 +1,4 @@
+const { createCanvas, loadImage } = require("canvas");
 const puppeteer = require("puppeteer");
 const logger = require("./logger");
 
@@ -28,36 +29,24 @@ async function start(port = 3000) {
  */
 async function capture(canvasId) {
   try {
-    return await _page.evaluate(async (id) => {
-      const el = document.getElementById(id);
-      if (!el) {
-        throw new Error(`element ${id} not found`);
-      }
+    // Take screenshot of the element
+    const element = await _page.$(`#${canvasId}`);
+    const buffer = await element.screenshot({
+      type: "png",
+    });
+    // console.log(buffer);
 
-      let canvas = null;
+    // Create canvas from the screenshot
+    const image = await loadImage(buffer);
+    const canvas = createCanvas(image.width, image.height);
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(image, 0, 0);
 
-      // If element is canvas, use it directly
-      if (el.tagName.toLowerCase() == "canvas") {
-        canvas = el;
-      }
-      // If not, convert to canvas
-      else {
-        if (!window.html2canvas) {
-          throw new Error("html2canvas is not loaded");
-        }
-        canvas = await html2canvas(el, { backgroundColor: null });
-      }
-
-      if (!canvas) {
-        throw new Error(`get canvas ${id} error`);
-      }
-
-      const ctx = canvas.getContext("2d");
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      return Array.from(imgData.data);
-    }, canvasId);
+    // Return the canvas data
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    return Array.from(imgData.data);
   } catch (err) {
-    logger.error(`capture canvas ${canvasId} error: ${err}`);
+    logger.error(`capture ${canvasId} error: ${err}`);
     return null;
   }
 }
