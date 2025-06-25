@@ -1,7 +1,7 @@
 [project]
-name = "status-screen"
+name = "cover-screen"
 version = "0.1.0"
-description = "Status Screen"
+description = "Cover Screen"
 readme = "README.md"
 requires-python = ">=3.12"
 

@@ -71,6 +71,45 @@ wheels = [
 ]
 
 [[package]]
+name = "cover-screen"
+version = "0.1.0"
+source = { virtual = "." }
+
+[package.dev-dependencies]
+desktop = [
+    { name = "luma-emulator" },
+    { name = "numpy" },
+    { name = "pyzmq" },
+]
+dev = [
+    { name = "ruff" },
+]
+raspi = [
+    { name = "gpiozero" },
+    { name = "lgpio" },
+    { name = "luma-lcd" },
+    { name = "numpy" },
+    { name = "pyzmq" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+desktop = [
+    { name = "luma-emulator", specifier = "==1.5.0" },
+    { name = "numpy" },
+    { name = "pyzmq" },
+]
+dev = [{ name = "ruff" }]
+raspi = [
+    { name = "gpiozero", specifier = "==2.0.1" },
+    { name = "lgpio", specifier = "==0.2.2.0" },
+    { name = "luma-lcd", specifier = "==2.11.0" },
+    { name = "numpy" },
+    { name = "pyzmq" },
+]
+
+[[package]]
 name = "gpiozero"
 version = "2.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -362,42 +401,3 @@ name = "spidev"
 version = "3.7"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b5/99/dd50af8200e224ce9412ad01cdbeeb5b39b2d61acd72138f2b92c4a6d619/spidev-3.7.tar.gz", hash = "sha256:ce628a5ff489f45132679879bff5f455a66abf9751af01843850155b06ae92f0", size = 11616, upload-time = "2025-05-06T14:23:30.783Z" }
-
-[[package]]
-name = "status-screen"
-version = "0.1.0"
-source = { virtual = "." }
-
-[package.dev-dependencies]
-desktop = [
-    { name = "luma-emulator" },
-    { name = "numpy" },
-    { name = "pyzmq" },
-]
-dev = [
-    { name = "ruff" },
-]
-raspi = [
-    { name = "gpiozero" },
-    { name = "lgpio" },
-    { name = "luma-lcd" },
-    { name = "numpy" },
-    { name = "pyzmq" },
-]
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-desktop = [
-    { name = "luma-emulator", specifier = "==1.5.0" },
-    { name = "numpy" },
-    { name = "pyzmq" },
-]
-dev = [{ name = "ruff" }]
-raspi = [
-    { name = "gpiozero", specifier = "==2.0.1" },
-    { name = "lgpio", specifier = "==0.2.2.0" },
-    { name = "luma-lcd", specifier = "==2.11.0" },
-    { name = "numpy" },
-    { name = "pyzmq" },
-]
