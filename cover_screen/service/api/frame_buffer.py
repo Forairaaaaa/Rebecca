@@ -1,7 +1,6 @@
 from utils.logger import logger
 from datetime import datetime
 from typing import Any
-import numpy as np
 import json
 import os
 import zmq
@@ -38,8 +37,7 @@ class FrameBuffer:
 
         os.makedirs(TEMP_DIR, exist_ok=True)
 
-        buffer_shape = self._panel.frame_buffer.buffer.shape
-        buffer_itemsize = self._panel.frame_buffer.buffer.itemsize
+        buffer_size = self._panel.device.size
 
         info_path = f"{TEMP_DIR}/{self._name}.json"
         with open(info_path, "w") as f:
@@ -47,9 +45,9 @@ class FrameBuffer:
                 {
                     "name": self._name,
                     "port": self._port,
-                    "width": buffer_shape[1],
-                    "height": buffer_shape[0],
-                    "depth": buffer_itemsize,
+                    "width": buffer_size[1],
+                    "height": buffer_size[0],
+                    "depth": 4,
                     "created_at": datetime.now().isoformat(),
                 },
                 f,
@@ -61,12 +59,7 @@ class FrameBuffer:
         raw_data: Any = await self._zmq_socket.recv()
 
         try:
-            src = np.frombuffer(raw_data, dtype=np.uint32)
-            np.copyto(
-                self._panel.frame_buffer.buffer,
-                src.reshape(self._panel.frame_buffer.buffer.shape),
-            )
-            self._panel.frame_buffer.push()
+            self._panel.pushRaw(raw_data)
         except Exception as e:
             logger.error(f"[{self._name}] error: {e}")
             await self._zmq_socket.send_json({"status": -1, "msg": str(e)})

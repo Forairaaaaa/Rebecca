@@ -137,21 +137,6 @@ class st7789v2(backlit_device):
         assert 0 <= level <= 255
 
 
-class _FrameBuffer:
-    def __init__(self, lcd_device):
-        self._device = lcd_device
-        self.depth = 4
-
-        if self._device.rotate == 2:
-            self.buffer = np.zeros((self._device._h, self._device._w), dtype=np.uint32)
-        else:
-            self.buffer = np.zeros((self._device._w, self._device._h), dtype=np.uint32)
-
-    def push(self):
-        image = Image.fromarray(self.buffer, mode="RGBA")
-        self._device.display(image)
-
-
 class Zjy169:
     """
     中景园 1.69" ST7789V2 240x280 SPI LCD.
@@ -188,8 +173,8 @@ class Zjy169:
             rotate=rotate,
         )
 
-    @property
-    def frame_buffer(self):
-        if not hasattr(self, "_frame_buffer"):
-            self._frame_buffer = _FrameBuffer(self.device)
-        return self._frame_buffer
+    def push(self, img: Image.Image):
+        self.device.display(img)
+
+    def pushRaw(self, raw: bytes):
+        self.push(Image.frombytes("RGBA", self.device.size, raw))
