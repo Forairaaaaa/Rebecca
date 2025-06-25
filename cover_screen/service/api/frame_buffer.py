@@ -45,8 +45,8 @@ class FrameBuffer:
                 {
                     "name": self._name,
                     "port": self._port,
-                    "width": buffer_size[1],
-                    "height": buffer_size[0],
+                    "width": buffer_size[0],
+                    "height": buffer_size[1],
                     "depth": 4,
                     "created_at": datetime.now().isoformat(),
                 },
