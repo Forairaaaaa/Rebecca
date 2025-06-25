@@ -4,7 +4,6 @@ from theme.font import get_font
 from theme.theme import get_theme
 import asyncio
 import psutil
-import math
 import os
 
 
@@ -64,49 +63,81 @@ class HtopLike(AppBase):
     def draw_cpu_bars(self, cpu_percents):
         cpu_times_percent = psutil.cpu_times_percent(percpu=True)[:4]
 
-        bar_width = 31
+        bar_width = 36
         font_width = self.font.getbbox(" ")[2]
 
-        def draw_panel(x, y, cpu_num, usage):
+        def draw_panel(x, y, cpu_num):
             self.draw.text((x, y), str(cpu_num), font=self.font, fill=self.color_blue)
             self.draw.text(
                 (x + font_width, y),
-                f"[{' ' * (bar_width + 1)}]",
+                f"[{' ' * (bar_width - 1)}]",
                 font=self.font,
                 fill=self.color_white,
             )
-            self.draw.text(
-                (x + font_width + (bar_width - 5) * font_width, y),
-                f"{usage:>6.1f}%",
-                font=self.font,
-                fill=self.bright_black,
+
+        def draw_bar(x, y, times_percent, usage):
+            # Get bar width
+            user_bar_width = int(times_percent.user * bar_width / 100)
+            system_bar_width = int(times_percent.system * bar_width / 100)
+
+            # Get part start x
+            user_part_start_x = x + font_width * 2
+            system_part_start_x = user_part_start_x + font_width * user_bar_width
+            usage_part_start_x = (
+                user_part_start_x
+                + font_width * user_bar_width
+                + font_width * system_bar_width
             )
 
-        def draw_bar(x, y, times_percent):
-            user_bar_width = int(math.ceil(times_percent.user * bar_width / 100))
-            system_bar_width = int(math.ceil(times_percent.system * bar_width / 100))
-            user_bar_start_x = x + font_width * 2
-            system_bar_start_x = user_bar_start_x + font_width * user_bar_width
+            # Fill bar content
+            bar_end_x = 0
+            bar_content = [" "] * (bar_width - 1)
+
+            for i in range(user_bar_width):
+                bar_content[i] = "|"
+                bar_end_x += 1
+            for i in range(system_bar_width):
+                bar_content[user_bar_width + i] = "|"
+                bar_end_x += 1
+
+            if bar_end_x > len(bar_content) - 6:
+                bar_content[-6:] = f"{usage:|>5.1f}%"
+            else:
+                bar_content[-6:] = f"{usage:>5.1f}%"
+
+            # Divide bar content
+            user_part_content = "".join(bar_content[:user_bar_width])
+            system_part_content = "".join(
+                bar_content[user_bar_width : user_bar_width + system_bar_width]
+            )
+            usage_part_content = "".join(
+                bar_content[user_bar_width + system_bar_width :]
+            )
 
             self.draw.text(
-                (user_bar_start_x, y),
-                f"{'|' * user_bar_width}",
+                (user_part_start_x, y),
+                user_part_content,
                 font=self.font,
                 fill=self.color_green,
             )
             self.draw.text(
-                (system_bar_start_x, y),
-                f"{'|' * system_bar_width}",
+                (system_part_start_x, y),
+                system_part_content,
                 font=self.font,
                 fill=self.color_red,
             )
+            self.draw.text(
+                (usage_part_start_x, y),
+                usage_part_content,
+                font=self.font,
+                fill=self.bright_black,
+            )
 
-        x_base = 8 + 14
+        x_base = 8
         y_base = 40
-        for i, usage in enumerate(cpu_percents):
-            draw_panel(x_base, y_base + i * 15, i, usage)
         for i, times in enumerate(cpu_times_percent):
-            draw_bar(x_base, y_base + i * 15, times)
+            draw_panel(x_base, y_base + i * 15, i)
+            draw_bar(x_base, y_base + i * 15, times, cpu_percents[i])
 
     def draw_process_infos(self):
         processes = []
