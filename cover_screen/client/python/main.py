@@ -1,18 +1,22 @@
-from utils.logger import logger
 import utils.cover_screen as cover_screen
-from PIL import Image, ImageDraw
+from app.htop_like import HtopLike
+from utils.logger import logger
 import asyncio
 
 
 async def main():
-    for i in range(10):
-        for screen in cover_screen.get_screens():
-            img = Image.new("RGBA", (280, 240), (0, 0, 0, 255))
-            draw = ImageDraw.Draw(img)
-            draw.rectangle((100, 100, 300, 300), fill=(255, 0, 0, 255))
-            draw.text((120, 120), f"Hello {i}", fill=(255, 255, 255, 255))
+    app_map = {
+        "fb0": HtopLike,
+    }
 
-            await cover_screen.push(screen["name"], img)
+    app_list = []
+    for screen_name, app in app_map.items():
+        if not cover_screen.exists(screen_name):
+            continue
+        app_list.append(app(screen_name))
+
+    while True:
+        await asyncio.sleep(1)
 
 
 if __name__ == "__main__":
