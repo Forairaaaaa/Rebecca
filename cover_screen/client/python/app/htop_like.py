@@ -23,6 +23,8 @@ class HtopLike(AppBase):
         self.color_black = self.theme["terminal_colors"]["normal"]["black"]
         self.bright_black = self.theme["terminal_colors"]["bright"]["black"]
 
+        self.font_width = self.font.getbbox(" ")[2]
+
         # Init image
         self.width = width
         self.height = height
@@ -38,27 +40,23 @@ class HtopLike(AppBase):
 
             cpu_percents = psutil.cpu_percent(percpu=True)[:4]
 
-            # self.draw_infos(cpu_percents)
-            self.draw_mem_bar()
-            self.draw_cpu_bars(cpu_percents)
+            # self.draw_infos(cpu_percents, 8, 90)
+            self.draw_mem_bar(8, 80)
+            self.draw_cpu_bars(cpu_percents, 8 + self.font_width * 2, 20)
             self.draw_process_infos()
 
             await self.render(self.image)
             await asyncio.sleep(1)
 
-    def draw_mem_bar(self):
+    def draw_mem_bar(self, x_base, y_base):
         mem = psutil.virtual_memory()
 
-        font_width = self.font.getbbox(" ")[2]
         bar_width = 33
-
-        x_base = 8
-        y_base = 80
 
         # Draw panel
         self.draw.text((x_base, y_base), "Mem", font=self.font, fill=self.color_blue)
         self.draw.text(
-            (x_base + font_width * 3, y_base),
+            (x_base + self.font_width * 3, y_base),
             f"[{' ' * (bar_width - 1)}]",
             font=self.font,
             fill=self.color_white,
@@ -68,29 +66,26 @@ class HtopLike(AppBase):
         used_bar_width = int(math.floor(mem.used / mem.total * bar_width))
 
         # Fill bar content
-        bar_end_x = 0
         bar_content = [" "] * (bar_width - 1)
-
-        for i in range(used_bar_width):
-            if i > len(bar_content) - 1:
-                break
-            bar_content[i] = "|"
-            bar_end_x += 1
 
         usage_text = f"{mem.used / (1024 * 1024 * 1024):>4.1f}G/{mem.total / (1024 * 1024 * 1024):>4.1f}G"
         bar_content[-len(usage_text) :] = usage_text
 
-        print("".join(bar_content))
+        for i in range(used_bar_width):
+            if i > len(bar_content) - 1:
+                break
+            if bar_content[i] == " ":
+                bar_content[i] = "|"
+
+        # print("".join(bar_content))
 
         # Divide bar content
         user_part_content = "".join(bar_content[:used_bar_width])
         usage_part_content = "".join(bar_content[used_bar_width:])
 
         # Get bar start x
-        used_part_start_x = x_base + font_width * 4
-        usage_part_start_x = (
-            used_part_start_x + (len(bar_content) - len(usage_text)) * font_width
-        )
+        used_part_start_x = x_base + self.font_width * 4
+        usage_part_start_x = used_part_start_x + self.font_width * used_bar_width
 
         self.draw.text(
             (used_part_start_x, y_base),
@@ -105,12 +100,9 @@ class HtopLike(AppBase):
             fill=self.bright_black,
         )
 
-    def draw_infos(self, cpu_percents):
+    def draw_infos(self, cpu_percents, x_base, y_base):
         mem = psutil.virtual_memory()
         load_avg = os.getloadavg()
-
-        x_base = 8
-        y_base = 90
 
         mem_str = f"MEM: {mem.used / (1024 * 1024 * 1024):.2f}G/{mem.total / (1024 * 1024 * 1024):.2f}G"
 
@@ -127,16 +119,15 @@ class HtopLike(AppBase):
             fill=self.color_blue,
         )
 
-    def draw_cpu_bars(self, cpu_percents):
+    def draw_cpu_bars(self, cpu_percents, x_base, y_base):
         cpu_times_percent = psutil.cpu_times_percent(percpu=True)[:4]
 
-        bar_width = 35
-        font_width = self.font.getbbox(" ")[2]
+        bar_width = 33
 
         def draw_panel(x, y, cpu_num):
             self.draw.text((x, y), str(cpu_num), font=self.font, fill=self.color_blue)
             self.draw.text(
-                (x + font_width, y),
+                (x + self.font_width, y),
                 f"[{' ' * (bar_width - 1)}]",
                 font=self.font,
                 fill=self.color_white,
@@ -148,33 +139,22 @@ class HtopLike(AppBase):
             system_bar_width = int(math.floor(times_percent.system * bar_width / 100))
 
             # Fill bar content
-            bar_end_x = 0
             bar_content = [" "] * (bar_width - 1)
 
-            # Get part start x
-            user_part_start_x = x + font_width * 2
-            system_part_start_x = user_part_start_x + font_width * user_bar_width
-            usage_part_start_x = (
-                user_part_start_x
-                + font_width * user_bar_width
-                + font_width * system_bar_width
-            )
+            usage_text = f"{usage:>5.1f}%"
+            bar_content[-len(usage_text) :] = usage_text
 
             for i in range(user_bar_width):
                 if i > len(bar_content) - 1:
                     break
-                bar_content[i] = "|"
-                bar_end_x += 1
+                if bar_content[i] == " ":
+                    bar_content[i] = "|"
+
             for i in range(system_bar_width):
                 if i > len(bar_content) - 1:
                     break
-                bar_content[user_bar_width + i] = "|"
-                bar_end_x += 1
-
-            if bar_end_x > len(bar_content) - 6:
-                bar_content[-6:] = f"{usage:|>5.1f}%"
-            else:
-                bar_content[-6:] = f"{usage:>5.1f}%"
+                if bar_content[user_bar_width + i] == " ":
+                    bar_content[user_bar_width + i] = "|"
 
             # Divide bar content
             user_part_content = "".join(bar_content[:user_bar_width])
@@ -183,6 +163,15 @@ class HtopLike(AppBase):
             )
             usage_part_content = "".join(
                 bar_content[user_bar_width + system_bar_width :]
+            )
+
+            # Get part start x
+            user_part_start_x = x + self.font_width * 2
+            system_part_start_x = user_part_start_x + self.font_width * user_bar_width
+            usage_part_start_x = (
+                user_part_start_x
+                + self.font_width * user_bar_width
+                + self.font_width * system_bar_width
             )
 
             self.draw.text(
@@ -204,8 +193,6 @@ class HtopLike(AppBase):
                 fill=self.bright_black,
             )
 
-        x_base = 8
-        y_base = 20
         for i, times in enumerate(cpu_times_percent):
             draw_panel(x_base, y_base + i * 15, i)
             draw_bar(x_base, y_base + i * 15, times, cpu_percents[i])
