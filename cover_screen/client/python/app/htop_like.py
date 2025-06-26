@@ -4,6 +4,7 @@ from theme.font import get_font
 from theme.theme import get_theme
 import asyncio
 import psutil
+import time
 import math
 import os
 
@@ -22,6 +23,7 @@ class HtopLike(AppBase):
         self.color_white = self.theme["terminal_colors"]["normal"]["white"]
         self.color_black = self.theme["terminal_colors"]["normal"]["black"]
         self.bright_black = self.theme["terminal_colors"]["bright"]["black"]
+        self.bright_yellow = self.theme["terminal_colors"]["bright"]["yellow"]
 
         self.font_width = self.font.getbbox(" ")[2]
 
@@ -38,12 +40,13 @@ class HtopLike(AppBase):
                 fill=self.color_background,
             )
 
-            cpu_percents = psutil.cpu_percent(percpu=True)[:4]
+            base_x = 8
+            base_y = 8
 
-            # self.draw_infos(cpu_percents, 8, 90)
-            self.draw_mem_bar(8, 80)
-            self.draw_cpu_bars(cpu_percents, 8 + self.font_width * 2, 20)
-            self.draw_process_infos()
+            self.draw_cpu_bars(base_x, base_y)
+            self.draw_mem_bar(base_x, base_y + 60)
+            self.draw_infos(base_x, base_y + 75)
+            self.draw_process_infos(base_x - 1, base_y + 110)
 
             await self.render(self.image)
             await asyncio.sleep(1)
@@ -100,32 +103,61 @@ class HtopLike(AppBase):
             fill=self.bright_black,
         )
 
-    def draw_infos(self, cpu_percents, x_base, y_base):
-        mem = psutil.virtual_memory()
+    def draw_infos(self, x_base, y_base):
+        # Avg load
         load_avg = os.getloadavg()
-
-        mem_str = f"MEM: {mem.used / (1024 * 1024 * 1024):.2f}G/{mem.total / (1024 * 1024 * 1024):.2f}G"
-
         self.draw.text(
             (x_base, y_base),
-            f"CPU: {int(sum(cpu_percents) / len(cpu_percents))}%   {mem_str}",
-            font=self.font,
-            fill=self.color_green,
-        )
-        self.draw.text(
-            (x_base, y_base + 15),
-            f"Load avg: {load_avg[0]:.2f}  {load_avg[1]:.2f}  {load_avg[2]:.2f}",
+            f"Load avg: {load_avg[0]:.2f} {load_avg[1]:.2f} {load_avg[2]:.2f}",
             font=self.font,
             fill=self.color_blue,
         )
 
-    def draw_cpu_bars(self, cpu_percents, x_base, y_base):
+        # Uptime
+        def get_uptime():
+            boot_time = psutil.boot_time()
+            now = time.time()
+            uptime_seconds = int(now - boot_time)
+
+            days = uptime_seconds // 86400
+            hours = (uptime_seconds % 86400) // 3600
+            minutes = (uptime_seconds % 3600) // 60
+            seconds = uptime_seconds % 60
+
+            if days > 0:
+                return f"Uptime: {days} days, {hours:02}:{minutes:02}:{seconds:02}"
+            else:
+                return f"Uptime: {hours:02}:{minutes:02}:{seconds:02}"
+
+        self.draw.text(
+            (x_base, y_base + 15),
+            get_uptime(),
+            font=self.font,
+            fill=self.color_blue,
+        )
+
+        # Nice
+        text = "(..•˘_˘•..)"
+        self.draw.text(
+            (x_base + self.font_width * 37 - self.font_width * len(text), y_base + 8),
+            text,
+            font=self.font,
+            fill=self.bright_yellow,
+        )
+
+    def draw_cpu_bars(self, x_base, y_base):
+        cpu_percents = psutil.cpu_percent(percpu=True)[:4]
         cpu_times_percent = psutil.cpu_times_percent(percpu=True)[:4]
 
-        bar_width = 33
+        bar_width = 35
 
         def draw_panel(x, y, cpu_num):
-            self.draw.text((x, y), str(cpu_num), font=self.font, fill=self.color_blue)
+            self.draw.text(
+                (x, y),
+                str(cpu_num),
+                font=self.font,
+                fill=self.color_blue,
+            )
             self.draw.text(
                 (x + self.font_width, y),
                 f"[{' ' * (bar_width - 1)}]",
@@ -197,7 +229,7 @@ class HtopLike(AppBase):
             draw_panel(x_base, y_base + i * 15, i)
             draw_bar(x_base, y_base + i * 15, times, cpu_percents[i])
 
-    def draw_process_infos(self):
+    def draw_process_infos(self, x_base, y_base):
         processes = []
         for proc in psutil.process_iter(
             ["pid", "username", "cpu_percent", "memory_percent", "name"]
@@ -213,22 +245,26 @@ class HtopLike(AppBase):
                 continue
         processes = sorted(processes, key=lambda p: p["cpu_percent"], reverse=True)[:6]
 
-        y_base = 125
         # Title panel
         self.draw.rectangle(
-            [5, y_base, self.image.width - 5, y_base + 15],
+            [x_base - 2, y_base, self.image.width - x_base - 2, y_base + 15],
             fill=self.theme["terminal_colors"]["normal"]["green"],
         )
         # Title
         self.draw.text(
-            (7, y_base),
-            "  PID USER     CPU%  MEM%  Command",
+            (x_base, y_base),
+            "  PID USER     CPU% MEM%  Command",
             font=self.font,
             fill=self.color_black,
         )
         # Process list
         for i, proc in enumerate(processes):
             y = y_base + 2 + 15 * (i + 1)
-            cmd = proc["name"][:9] + ".."
-            text = f"{proc['pid']:>5} {proc['username'][:8]:<8} {proc['cpu_percent']:>4.1f}  {proc['memory_percent']:>4.1f}  {cmd}"
-            self.draw.text((7, y), text, font=self.font, fill=self.color_white)
+            cmd = f"{proc['name'][:9]}.." if len(proc["name"]) > 9 else proc["name"]
+            username = (
+                f"{proc['username'][:6]}.."
+                if len(proc["username"]) > 6
+                else proc["username"]
+            )
+            text = f"{proc['pid']:>5} {username:<8} {proc['cpu_percent']:>4.1f} {proc['memory_percent']:>4.1f}  {cmd}"
+            self.draw.text((x_base, y), text, font=self.font, fill=self.color_white)
