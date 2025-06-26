@@ -9,7 +9,7 @@ def get_font(size=12):
     try:
         return ImageFont.truetype(_font, size)
     except Exception as e:
-        logger.error(f"load font failed: {e}")
+        logger.error(f"load font {_font} failed: {e}")
         return ImageFont.load_default()
 
 
