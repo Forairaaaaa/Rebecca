@@ -22,8 +22,9 @@ class HtopLike(AppBase):
         self.color_green = self.theme["terminal_colors"]["normal"]["green"]
         self.color_white = self.theme["terminal_colors"]["normal"]["white"]
         self.color_black = self.theme["terminal_colors"]["normal"]["black"]
-        self.bright_black = self.theme["terminal_colors"]["bright"]["black"]
-        self.bright_yellow = self.theme["terminal_colors"]["bright"]["yellow"]
+        self.color_bright_black = self.theme["terminal_colors"]["bright"]["black"]
+        self.color_yellow = self.theme["terminal_colors"]["bright"]["yellow"]
+        self.color_cyan = self.theme["terminal_colors"]["bright"]["cyan"]
 
         self.font_width = self.font.getbbox(" ")[2]
 
@@ -41,12 +42,12 @@ class HtopLike(AppBase):
             )
 
             base_x = 8
-            base_y = 8
+            base_y = 6
 
             self.draw_cpu_bars(base_x, base_y)
-            self.draw_mem_bar(base_x, base_y + 60)
-            self.draw_infos(base_x, base_y + 75)
-            self.draw_process_infos(base_x - 1, base_y + 110)
+            self.draw_mem_bar(base_x, base_y + 62)
+            self.draw_infos(base_x, base_y + 80)
+            self.draw_process_infos(base_x - 1, base_y + 115)
 
             await self.render(self.image)
             await asyncio.sleep(1)
@@ -100,7 +101,7 @@ class HtopLike(AppBase):
             (usage_part_start_x, y_base),
             usage_part_content,
             font=self.font,
-            fill=self.bright_black,
+            fill=self.color_bright_black,
         )
 
     def draw_infos(self, x_base, y_base):
@@ -110,7 +111,7 @@ class HtopLike(AppBase):
             (x_base, y_base),
             f"Load avg: {load_avg[0]:.2f} {load_avg[1]:.2f} {load_avg[2]:.2f}",
             font=self.font,
-            fill=self.color_blue,
+            fill=self.color_cyan,
         )
 
         # Uptime
@@ -133,7 +134,7 @@ class HtopLike(AppBase):
             (x_base, y_base + 15),
             get_uptime(),
             font=self.font,
-            fill=self.color_blue,
+            fill=self.color_cyan,
         )
 
         # Nice
@@ -142,7 +143,7 @@ class HtopLike(AppBase):
             (x_base + self.font_width * 37 - self.font_width * len(text), y_base + 8),
             text,
             font=self.font,
-            fill=self.bright_yellow,
+            fill=self.color_yellow,
         )
 
     def draw_cpu_bars(self, x_base, y_base):
@@ -222,7 +223,7 @@ class HtopLike(AppBase):
                 (usage_part_start_x, y),
                 usage_part_content,
                 font=self.font,
-                fill=self.bright_black,
+                fill=self.color_bright_black,
             )
 
         for i, times in enumerate(cpu_times_percent):
@@ -247,8 +248,8 @@ class HtopLike(AppBase):
 
         # Title panel
         self.draw.rectangle(
-            [x_base - 2, y_base, self.image.width - x_base - 2, y_base + 15],
-            fill=self.theme["terminal_colors"]["normal"]["green"],
+            [x_base - 2, y_base + 2, self.image.width - x_base - 2, y_base + 15],
+            fill=self.color_green,
         )
         # Title
         self.draw.text(
@@ -259,7 +260,7 @@ class HtopLike(AppBase):
         )
         # Process list
         for i, proc in enumerate(processes):
-            y = y_base + 2 + 15 * (i + 1)
+            y = y_base + 4 + 15 * (i + 1)
             cmd = f"{proc['name'][:9]}.." if len(proc["name"]) > 9 else proc["name"]
             username = (
                 f"{proc['username'][:6]}.."
