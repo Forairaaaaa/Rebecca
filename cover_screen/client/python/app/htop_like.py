@@ -1,7 +1,6 @@
+from theme.theme import get_font, get_theme
 from PIL import Image, ImageDraw
 from app.app_base import AppBase
-from theme.font import get_font
-from theme.theme import get_theme
 import asyncio
 import psutil
 import time

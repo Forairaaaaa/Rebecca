@@ -1,5 +1,6 @@
 import utils.cover_screen as cover_screen
 from app.htop_like import HtopLike
+from app.terminal import Terminal
 from utils.logger import logger
 import asyncio
 
@@ -7,6 +8,7 @@ import asyncio
 async def main():
     app_map = {
         "fb0": HtopLike,
+        "fb1": Terminal,
     }
 
     app_list = []

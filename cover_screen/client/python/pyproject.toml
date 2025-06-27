@@ -9,4 +9,7 @@ dependencies = [
   "pillow",
   "psutil",
   "pyyaml",
+  "stransi",
+  "rich",
+  "ochre",
 ]
