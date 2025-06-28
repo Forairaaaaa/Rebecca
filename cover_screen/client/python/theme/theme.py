@@ -1,19 +1,19 @@
+# https://github.com/warpdotdev/themes/tree/main/standard
 from utils.logger import logger
 from PIL import ImageFont
 import yaml
 
 
-THEMES_DIR = "theme/themes"
-DEFAULT_THEME = "ayu_dark"
-DEFAULT_FONT = "IBMPlexMono"
+DEFAULT_THEME = "theme/themes/default.yaml"
+DEFAULT_FONT = "CascadiaMono-Bold.ttf"
 
 
 _theme = None
 _font = DEFAULT_FONT
 
 
-def load_theme(theme_name: str):
-    with open(f"{THEMES_DIR}/{theme_name}.yaml", "r") as f:
+def load_theme(theme_path: str):
+    with open(theme_path, "r") as f:
         theme = yaml.safe_load(f)
     return theme
 
@@ -30,8 +30,8 @@ def set_theme(theme_name: str):
     _theme = load_theme(theme_name)
 
 
-def get_font(size=12, weight="Bold"):
-    font = f"{_font}-{weight}.ttf"
+def get_font(size=12):
+    font = f"{_font}"
     try:
         return ImageFont.truetype(font, size)
     except Exception as e:

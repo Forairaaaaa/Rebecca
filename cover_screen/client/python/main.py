@@ -1,7 +1,9 @@
 import utils.cover_screen as cover_screen
+from theme.theme import set_theme, set_font
 from app.htop_like import HtopLike
 from app.terminal import Terminal
 from utils.logger import logger
+import argparse
 import asyncio
 
 
@@ -18,10 +20,20 @@ async def main():
         app_list.append(app(screen_name))
 
     while True:
-        await asyncio.sleep(1)
+        await asyncio.sleep(2333)
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--theme", type=str, default=None)
+    parser.add_argument("--font", type=str, default=None)
+    args = parser.parse_args()
+
+    if args.theme:
+        set_theme(args.theme)
+    if args.font:
+        set_font(args.font)
+
     try:
         logger.info("start cover screen client")
         cover_screen.connect()

@@ -172,6 +172,7 @@ class Zjy169:
             offset=(0, 20),
             rotate=rotate,
         )
+        self.device.backlight(100)
 
     def push(self, img: Image.Image):
         self.device.display(img)
