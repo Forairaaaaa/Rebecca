@@ -1,9 +1,15 @@
 
+## 树莓派
 
-https://luma-emulator.readthedocs.io/en/latest/install.html
+uv run main.py
 
 
-https://docs.astral.sh/uv/concepts/projects
-
+## 模拟器
 
 uv run --only-group desktop -m desktop.main
+
+
+TODO:
+
+[ ] fb 捞 panel 解耦
+[ ] 简化接口
