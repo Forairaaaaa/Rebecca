@@ -5,7 +5,7 @@ const fs = require("fs");
 
 let _screens = [];
 
-function _loadFrameBuffers(dir) {
+function _loadScreenInfos(dir) {
   logger.info(`load screen from ${dir}`);
 
   const files = fs.readdirSync(dir);
@@ -27,7 +27,7 @@ function _loadFrameBuffers(dir) {
 
 async function _createSockets() {
   for (const screen of _screens) {
-    const zmq_port = `tcp://127.0.0.1:${screen.port}`;
+    const zmq_port = `tcp://127.0.0.1:${screen.frame_buffer_port}`;
 
     logger.info(`connect to ${zmq_port}`);
     screen.socket = new zmq.Request();
@@ -47,7 +47,7 @@ async function connect(fbTempDir = "/tmp/cover_screen") {
   if (_screens.length > 0) {
     await close();
   }
-  _loadFrameBuffers(fbTempDir);
+  _loadScreenInfos(fbTempDir);
   await _createSockets();
 }
 

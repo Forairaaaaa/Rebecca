@@ -9,8 +9,8 @@ import asyncio
 
 async def main():
     app_map = {
-        "fb0": HtopLike,
-        "fb1": Terminal,
+        "screen0": HtopLike,
+        "screen1": Terminal,
     }
 
     app_list = []

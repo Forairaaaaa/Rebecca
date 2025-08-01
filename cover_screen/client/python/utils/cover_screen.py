@@ -9,7 +9,7 @@ import zmq.asyncio
 _screens = []
 
 
-def _load_frame_buffers(directory):
+def _load_screen_infos(directory):
     global _screens
     logger.info(f"load screen from {directory}")
     dir_path = Path(directory)
@@ -31,7 +31,7 @@ def _create_sockets():
     context = zmq.asyncio.Context()
 
     for screen in _screens:
-        zmq_port = f"tcp://127.0.0.1:{screen['port']}"
+        zmq_port = f"tcp://127.0.0.1:{screen['frame_buffer_port']}"
         logger.info(f"connect to {zmq_port}")
 
         socket = context.socket(zmq.REQ)
@@ -52,7 +52,7 @@ def connect(fb_temp_dir="/tmp/cover_screen"):
     logger.info("connect cover screens")
     if _screens:
         stop()
-    _load_frame_buffers(fb_temp_dir)
+    _load_screen_infos(fb_temp_dir)
     _create_sockets()
 
 
