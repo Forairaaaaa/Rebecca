@@ -89,9 +89,24 @@ class _ScreenSocket:
             except Exception as e:
                 logger.error(f"[{self._name}] error: {e}")
                 await self._fb_socket.send_json({"status": -1, "msg": str(e)})
-                return
+                continue
 
             await self._fb_socket.send_json({"status": 0, "msg": "ok👌"})
+
+    async def _ctrl_worker(self):
+        while True:
+            command: Any = await self._ctrl_socket.recv()
+
+            try:
+                if self._on_command is None:
+                    raise Exception("empty on_command callback")
+                self._on_command(command)
+            except Exception as e:
+                logger.error(f"[{self._name}] error: {e}")
+                await self._ctrl_socket.send_json({"status": -1, "msg": str(e)})
+                continue
+
+            await self._ctrl_socket.send_json({"status": 0, "msg": "ok👌"})
 
 
 _screen_socket_instances = []
