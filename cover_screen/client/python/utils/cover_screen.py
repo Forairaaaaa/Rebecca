@@ -47,12 +47,12 @@ def _create_sockets():
         screen["push"] = push
 
 
-def connect(fb_temp_dir="/tmp/cover_screen"):
+def connect(info_dir="/tmp/cover_screen"):
     global _screens
     logger.info("connect cover screens")
     if _screens:
         stop()
-    _load_screen_infos(fb_temp_dir)
+    _load_screen_infos(info_dir)
     _create_sockets()
 
 
