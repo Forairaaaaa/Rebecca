@@ -71,7 +71,7 @@ wheels = [
 ]
 
 [[package]]
-name = "cover-screen"
+name = "cover-screen-service"
 version = "0.1.0"
 source = { virtual = "." }
 

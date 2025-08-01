@@ -1,7 +1,7 @@
 [project]
-name = "cover-screen"
+name = "cover-screen-service"
 version = "0.1.0"
-description = "Cover Screen"
+description = "Cover Screen Frame Buffer Service"
 readme = "README.md"
 requires-python = ">=3.12"
 

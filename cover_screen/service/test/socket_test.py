@@ -1,51 +1,38 @@
+import utils.screen_socket as screen_socket
 from utils.logger import logger
 import numpy as np
 import asyncio
 import random
-import json
 import zmq
-import os
-import api
+import json
 
 
-async def fb_test_task(fb_name):
-    info_path = f"{api.frame_buffer.TEMP_DIR}/{fb_name}.json"
-    if not os.path.exists(info_path):
-        logger.error(f"[{fb_name}] info file not found: {info_path}")
-        return
-
-    port = -1
-    width = -1
-    height = -1
-    depth = -1
-
-    with open(info_path, "r") as f:
-        info = json.load(f)
-        port = info.get("port")
-        width = info.get("width")
-        height = info.get("height")
-        depth = info.get("depth")
+async def fb_test_task(info):
+    name = info.get("name")
+    frame_buffer_port = info.get("frame_buffer_port")
+    screen_size = info.get("screen_size")
+    screen_depth = info.get("screen_depth")
 
     logger.info(
-        f"[{fb_name}] port: {port}, width: {width}, height: {height}, depth: {depth}"
+        f"[{name}] frame_buffer_port: {frame_buffer_port}, screen_size: {screen_size}, screen_depth: {screen_depth}"
     )
 
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
-    socket.connect(f"tcp://localhost:{port}")
+    socket.connect(f"tcp://localhost:{frame_buffer_port}")
 
-    fb = np.zeros((height, width), dtype=np.uint32)
+    fb = np.zeros(screen_size, dtype=np.uint32)
 
     colors = [0x00FF0000, 0x0000FF00, 0x000000FF, 0x00FFFFFF, 0x00000000]
 
     while True:
         for color in colors:
             fb.fill(color)
-            logger.info(f"[{fb_name}] set fb: #{hex(color)}")
+            logger.info(f"[{name}] set fb: #{hex(color)}")
 
             socket.send(fb.tobytes())
             response = socket.recv_json()
-            logger.info(f"[{fb_name}] response: {response}")
+            logger.info(f"[{name}] response: {response}")
 
             await asyncio.sleep(random.uniform(0.1, 1))
 
@@ -53,19 +40,17 @@ async def fb_test_task(fb_name):
 async def main():
     logger.info("start socket test")
 
-    fb_names = []
-    for filename in os.listdir(api.frame_buffer.TEMP_DIR):
-        if filename.endswith(".json"):
-            fb_name = filename.replace(".json", "")
-            fb_names.append(fb_name)
-    logger.info(f"available frame buffers: {fb_names}")
+    fb_infos = screen_socket.get_available_socket_infos()
 
-    if len(fb_names) == 0:
+    logger.info(f"get fb infos: {json.dumps(fb_infos, indent=4)}")
+
+    if len(fb_infos) == 0:
         logger.error("no frame buffers found")
         return
 
     logger.info("create tasks")
-    tasks = [fb_test_task(fb_name) for fb_name in fb_names]
+
+    tasks = [fb_test_task(info) for info in fb_infos]
 
     logger.info("start tasks")
     await asyncio.gather(*tasks)
