@@ -11,13 +11,13 @@
 #include "cover_screen.h"
 #include <nlohmann/json.hpp>
 #include <mooncake_log.h>
+#include <unordered_map>
 #include <filesystem>
 #include <zmq.hpp>
 #include <fstream>
 #include <iostream>
 #include <vector>
 #include <memory>
-#include <mutex>
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -26,13 +26,32 @@ namespace cover_screen {
 
 static zmq::context_t _context(1);
 static std::vector<ScreenInfo_t> _screens;
-static std::recursive_mutex _screen_mutex;
+static std::unordered_map<std::string, int> _screen_index_map;
+
+bool ScreenInfo_t::pushFrame(uint8_t* data, size_t size)
+{
+    try {
+        // Zero-copy send
+        zmq::message_t msg(data, size, nullptr, nullptr);
+        socket->send(msg, zmq::send_flags::none);
+
+        zmq::message_t reply;
+        auto ret = socket->recv(reply, zmq::recv_flags::none);
+        if (!ret) {
+            throw std::runtime_error("Failed to receive reply from " + name);
+        }
+
+        return true;
+    } catch (const std::exception& e) {
+        mclog::error("Failed to push frame: {}", e.what());
+        return false;
+    }
+}
 
 void connect(std::string infoDir)
 {
     mclog::info("Connecting to cover screen at {}", infoDir);
 
-    std::lock_guard<std::recursive_mutex> lock(_screen_mutex);
     stop();
 
     for (const auto& entry : fs::directory_iterator(infoDir)) {
@@ -45,8 +64,9 @@ void connect(std::string infoDir)
                 ScreenInfo_t screen;
                 screen.name = j.value("name", "");
                 screen.created_at = j.value("created_at", "");
-                screen.width = j.value("width", 0);
-                screen.height = j.value("height", 0);
+                auto screen_size = j.value("screen_size", std::vector<int>{0, 0});
+                screen.width = screen_size[0];
+                screen.height = screen_size[1];
                 screen.depth = j.value("depth", 0);
                 screen.frame_buffer_port = j.value("frame_buffer_port", -1);
                 screen.command_port = j.value("command_port", -1);
@@ -55,11 +75,19 @@ void connect(std::string infoDir)
                 screen.socket = std::make_unique<zmq::socket_t>(_context, ZMQ_REQ);
                 screen.socket->connect(addr);
 
-                _screens.push_back(std::move(screen));
-                mclog::info("Connected to {} for screen: {}", addr, screen.name);
+                mclog::info(
+                    "Connected to {} for screen:\n  name: {}\n  size: {} x {}\n  frame_buffer_port: {}\n  "
+                    "command_port: {}",
+                    addr,
+                    screen.name,
+                    screen.width,
+                    screen.height,
+                    screen.frame_buffer_port,
+                    screen.command_port);
 
-                // Pretty print the screen info
-                mclog::info("\n{}", j.dump(4));
+                auto name = screen.name;
+                _screens.push_back(std::move(screen));
+                _screen_index_map[name] = _screens.size() - 1;
 
             } catch (const std::exception& e) {
                 mclog::error("Failed to load {}: {}", entry.path().filename().string(), e.what());
@@ -70,39 +98,39 @@ void connect(std::string infoDir)
 
 const std::vector<ScreenInfo_t>& getScreens()
 {
-    std::lock_guard<std::recursive_mutex> lock(_screen_mutex);
     return _screens;
 }
 
-bool pushFrame(const std::string& screenName, uint8_t* data, size_t size)
+bool exists(const std::string& screenName)
 {
-    std::lock_guard<std::recursive_mutex> lock(_screen_mutex);
-    for (auto& screen : _screens) {
-        if (screen.name == screenName && screen.socket) {
-            try {
-                // Zero-copy send
-                zmq::message_t msg(data, size, nullptr, nullptr);
-                screen.socket->send(msg, zmq::send_flags::none);
-
-                zmq::message_t reply;
-                auto ret = screen.socket->recv(reply, zmq::recv_flags::none);
-                if (!ret) {
-                    throw std::runtime_error("Failed to receive reply from " + screenName);
-                }
-
-                return true;
-            } catch (const std::exception& e) {
-                mclog::error("Failed to push frame: {}", e.what());
-                return false;
-            }
+    for (const auto& screen : _screens) {
+        if (screen.name == screenName) {
+            return true;
         }
     }
     return false;
 }
 
+const ScreenInfo_t& getScreen(const std::string& screenName)
+{
+    auto it = _screen_index_map.find(screenName);
+    if (it == _screen_index_map.end()) {
+        throw std::runtime_error("Screen " + screenName + " does not exist");
+    }
+    return _screens[it->second];
+}
+
+bool pushFrame(const std::string& screenName, uint8_t* data, size_t size)
+{
+    auto it = _screen_index_map.find(screenName);
+    if (it == _screen_index_map.end()) {
+        throw std::runtime_error("Screen " + screenName + " does not exist");
+    }
+    return _screens[it->second].pushFrame(data, size);
+}
+
 void stop()
 {
-    std::lock_guard<std::recursive_mutex> lock(_screen_mutex);
     for (auto& screen : _screens) {
         if (screen.socket) {
             screen.socket->close();

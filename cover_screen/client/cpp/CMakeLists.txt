@@ -3,7 +3,7 @@ project(cover-screen-client VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
-file(GLOB_RECURSE UTILS_DIR "utils/*cpp")
+file(GLOB_RECURSE UTILS_DIR "utils/*.cpp")
 
 set(MOONCAKE_LOG_BUILD_EXAMPLE OFF)
 add_subdirectory(dependencies/mooncake_log)

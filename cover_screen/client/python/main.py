@@ -10,7 +10,7 @@ import asyncio
 async def main():
     app_map = {
         "screen0": HtopLike,
-        "screen1": Terminal,
+        # "screen1": Terminal,
     }
 
     app_list = []

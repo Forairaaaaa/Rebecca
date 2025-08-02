@@ -28,10 +28,13 @@ struct ScreenInfo_t {
     int command_port = -1;
 
     std::unique_ptr<zmq::socket_t> socket;
+    bool pushFrame(uint8_t* data, size_t size);
 };
 
 void connect(std::string infoDir = "/tmp/cover_screen");
 const std::vector<ScreenInfo_t>& getScreens();
+bool exists(const std::string& screenName);
+const ScreenInfo_t& getScreen(const std::string& screenName);
 bool pushFrame(const std::string& screenName, uint8_t* data, size_t size);
 void stop();
 
