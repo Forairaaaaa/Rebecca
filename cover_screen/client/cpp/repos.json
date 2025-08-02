@@ -8,5 +8,10 @@
     "url": "https://github.com/lvgl/lvgl.git",
     "path": "dependencies/lvgl",
     "branch": "v9.3.0"
+  },
+  {
+    "url": "https://github.com/nlohmann/json.git",
+    "path": "dependencies/json",
+    "branch": "v3.12.0"
   }
 ]

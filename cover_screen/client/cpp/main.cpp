@@ -10,13 +10,14 @@
  */
 #include "utils/cover_screen.h"
 #include <mooncake_log.h>
-#include <zmq.hpp>
 
 int main(int, char**)
 {
-    // cover_screen::connect();
+    cover_screen::connect();
 
     // while (true) {
     //     mclog::info("????");
     // }
+
+    return 0;
 }

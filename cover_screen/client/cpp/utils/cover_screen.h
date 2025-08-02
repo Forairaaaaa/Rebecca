@@ -11,6 +11,8 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <memory>
+#include <zmq.hpp>
 
 namespace cover_screen {
 
@@ -24,10 +26,12 @@ struct ScreenInfo_t {
 
     int frame_buffer_port = -1;
     int command_port = -1;
+
+    std::unique_ptr<zmq::socket_t> socket;
 };
 
 void connect(std::string infoDir = "/tmp/cover_screen");
-std::vector<ScreenInfo_t> getScreens();
+const std::vector<ScreenInfo_t>& getScreens();
 bool pushFrame(const std::string& screenName, uint8_t* data, size_t size);
 void stop();
 

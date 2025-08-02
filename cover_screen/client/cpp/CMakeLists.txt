@@ -15,6 +15,17 @@ add_subdirectory(dependencies/lvgl)
 
 find_package(cppzmq)
 
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+add_subdirectory(dependencies/json)
+
 add_executable(cover-screen-client main.cpp ${UTILS_DIR})
 
-target_link_libraries(cover-screen-client PUBLIC mooncake_log lvgl lvgl_examples lvgl_demos cppzmq)
+target_link_libraries(cover-screen-client PUBLIC 
+    mooncake_log
+    lvgl
+    lvgl_examples
+    lvgl_demos
+    cppzmq
+    nlohmann_json::nlohmann_json
+)
+
