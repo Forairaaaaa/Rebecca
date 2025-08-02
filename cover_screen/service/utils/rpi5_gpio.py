@@ -59,12 +59,15 @@ class GPIO:
         def start(self, duty_cycle):
             if self._running:
                 return
-            self._dev = PWMOutputDevice(
-                self.pin,
-                pin_factory=GPIO._factory,
-                frequency=self.frequency,
-                initial_value=duty_cycle / 100.0,
-            )
+
+            if self.pin is not None:
+                self._dev = PWMOutputDevice(
+                    self.pin,
+                    pin_factory=GPIO._factory,
+                    frequency=self.frequency,
+                    initial_value=duty_cycle / 100.0,
+                )
+
             self._running = True
 
         def ChangeDutyCycle(self, duty_cycle):

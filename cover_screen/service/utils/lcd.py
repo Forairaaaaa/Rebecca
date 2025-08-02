@@ -137,7 +137,7 @@ class st7789v2(backlit_device):
         assert 0 <= level <= 255
 
 
-class Zjy169:
+class ZhongJingYuan169:
     """
     中景园 1.69" ST7789V2 240x280 SPI LCD.
     """
@@ -146,9 +146,9 @@ class Zjy169:
         self,
         spi_port=0,
         spi_device=0,
-        gpio_DC=27,
-        gpio_RST=17,
-        gpio_LIGHT=25,
+        gpio_DC=None,
+        gpio_RST=None,
+        gpio_LIGHT=None,
         bus_speed_hz=52 * 1000000,
         pwm_frequency=1000,
         rotate=0,
