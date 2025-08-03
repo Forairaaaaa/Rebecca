@@ -22,7 +22,7 @@ struct ScreenInfo_t {
 
     int width = 0;
     int height = 0;
-    int depth = 0;
+    int bits_per_pixel = 0;
 
     int frame_buffer_port = -1;
     int command_port = -1;

@@ -15,7 +15,6 @@
 #include <filesystem>
 #include <zmq.hpp>
 #include <fstream>
-#include <iostream>
 #include <vector>
 #include <memory>
 
@@ -67,7 +66,7 @@ void connect(std::string infoDir)
                 auto screen_size = j.value("screen_size", std::vector<int>{0, 0});
                 screen.width = screen_size[0];
                 screen.height = screen_size[1];
-                screen.depth = j.value("depth", 0);
+                screen.bits_per_pixel = j.value("bits_per_pixel", 0);
                 screen.frame_buffer_port = j.value("frame_buffer_port", -1);
                 screen.command_port = j.value("command_port", -1);
 

@@ -1,3 +1,4 @@
+from turtle import width
 from theme.theme import get_font, get_theme
 from PIL import Image, ImageDraw
 from app.app_base import AppBase
@@ -35,7 +36,7 @@ class HtopLike(AppBase):
         self.draw = ImageDraw.Draw(self.image)
 
     async def main(self):
-        base_x = 7
+        base_x = 7 + (self.width - 280) / 2
         base_y = 5
         base_cpu_bar_x = base_x
         base_cpu_bar_y = base_y + 31

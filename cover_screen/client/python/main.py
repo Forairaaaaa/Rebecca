@@ -17,7 +17,8 @@ async def main():
     for screen_name, app in app_map.items():
         if not cover_screen.exists(screen_name):
             continue
-        app_list.append(app(screen_name))
+        screen_size = cover_screen.get_screen_size(screen_name)
+        app_list.append(app(screen_name, width=screen_size[0], height=screen_size[1]))
 
     while True:
         await asyncio.sleep(2333)
