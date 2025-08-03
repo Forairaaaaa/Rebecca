@@ -41,8 +41,8 @@ int main(int, char**)
     }
 
     // App shit
-    lv_demo_stress();
-    // lv_demo_benchmark();
+    // lv_demo_stress();
+    lv_demo_benchmark();
 
     while (!stop_requested) {
         lvgl_port::update();
