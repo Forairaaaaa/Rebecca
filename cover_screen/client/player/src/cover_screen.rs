@@ -1,4 +1,4 @@
-use log::{debug, error, info};
+use log::{debug, info};
 use serde::Deserialize;
 use std::fs;
 use std::io;
@@ -9,20 +9,20 @@ use zeromq::{Socket, SocketRecv, SocketSend};
 const SCREEN_INFO_DIR: &str = "/tmp/cover_screen";
 
 #[derive(Debug, Deserialize)]
-struct SocketInfoFile {
-    name: String,
-    screen_size: (u32, u32),
-    bits_per_pixel: u32,
-    frame_buffer_port: u16,
-    created_at: Option<String>,
-    device_path: Option<String>,
+pub struct SocketInfoFile {
+    pub name: String,
+    pub screen_size: (u32, u32),
+    pub bits_per_pixel: u32,
+    pub frame_buffer_port: u16,
+    pub created_at: Option<String>,
+    pub device_path: Option<String>,
 }
 
 pub struct CoverScreen {
     pub name: String,
     pub socket_info: SocketInfoFile,
     socket: ReqSocket,
-    frame_buffer: Vec<u8>,
+    pub frame_buffer: Vec<u8>,
 }
 
 #[derive(Deserialize)]
@@ -54,7 +54,7 @@ impl CoverScreen {
 
         // Send buffer
         self.socket
-            .send(self.frame_buffer.clone().into())
+            .send(self.frame_buffer.clone().into()) // TODO: maybe avoid clone
             .await
             .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("send failed: {e}")))?;
 
