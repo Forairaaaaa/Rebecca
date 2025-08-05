@@ -4,12 +4,13 @@ use crate::cover_screen::CoverScreen;
 use log::info;
 use std::error::Error;
 
-pub async fn draw_color_bar(cover_screen: &mut CoverScreen) -> Result<(), Box<dyn Error>> {
+pub async fn draw_color_bar(cover_screen: &mut impl CoverScreen) -> Result<(), Box<dyn Error>> {
     info!("draw color bar");
 
-    let (width, height) = cover_screen.socket_info.screen_size;
-    let bpp = cover_screen.socket_info.bits_per_pixel;
-    let frame_buffer = &mut cover_screen.frame_buffer;
+    let width = cover_screen.width();
+    let height = cover_screen.height();
+    let bpp = cover_screen.bpp();
+    let frame_buffer = cover_screen.frame_buffer();
 
     draw_smpte_ecr1978(frame_buffer, width as usize, height as usize, bpp as usize);
 

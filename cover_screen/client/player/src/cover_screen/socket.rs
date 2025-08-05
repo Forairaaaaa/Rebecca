@@ -1,3 +1,4 @@
+use crate::cover_screen::CoverScreen;
 use log::{debug, info};
 use serde::Deserialize;
 use std::fs;
@@ -18,7 +19,7 @@ pub struct SocketInfoFile {
     pub device_path: Option<String>,
 }
 
-pub struct CoverScreen {
+pub struct SocketCoverScreen {
     pub name: String,
     pub socket_info: SocketInfoFile,
     socket: ReqSocket,
@@ -31,7 +32,7 @@ struct PushFrameResponse {
     msg: String,
 }
 
-impl CoverScreen {
+impl SocketCoverScreen {
     pub async fn new(name: &str) -> io::Result<Self> {
         info!("create cover screen: {name}");
 
@@ -47,40 +48,6 @@ impl CoverScreen {
             socket,
             frame_buffer,
         })
-    }
-
-    pub async fn push_frame(&mut self) -> io::Result<()> {
-        debug!("push frame {} bytes", self.frame_buffer.len());
-
-        // Send buffer
-        self.socket
-            .send(self.frame_buffer.clone().into()) // TODO: maybe avoid clone
-            .await
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("send failed: {e}")))?;
-
-        // Wait response
-        let response = self
-            .socket
-            .recv()
-            .await
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("recv failed: {e}")))?;
-
-        // Check response
-        debug!("response: {:?}", response);
-
-        let response_json: PushFrameResponse = serde_json::from_slice(response.get(0).unwrap())
-            .map_err(|e| {
-                io::Error::new(io::ErrorKind::Other, format!("parse response failed: {e}"))
-            })?;
-
-        if response_json.status != 0 {
-            return Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!("push frame failed: {}", response_json.msg),
-            ));
-        }
-
-        Ok(())
     }
 }
 
@@ -116,4 +83,56 @@ fn create_frame_buffer(socket_info: &SocketInfoFile) -> Vec<u8> {
     );
 
     vec![0u8; size_in_bytes]
+}
+
+impl CoverScreen for SocketCoverScreen {
+    fn width(&self) -> u32 {
+        self.socket_info.screen_size.0
+    }
+
+    fn height(&self) -> u32 {
+        self.socket_info.screen_size.1
+    }
+
+    fn bpp(&self) -> u32 {
+        self.socket_info.bits_per_pixel
+    }
+
+    fn frame_buffer(&mut self) -> &mut Vec<u8> {
+        &mut self.frame_buffer
+    }
+
+    async fn push_frame(&mut self) -> io::Result<()> {
+        debug!("push frame {} bytes", self.frame_buffer.len());
+
+        // Send buffer
+        self.socket
+            .send(self.frame_buffer.clone().into()) // TODO: maybe avoid clone
+            .await
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("send failed: {e}")))?;
+
+        // Wait response
+        let response = self
+            .socket
+            .recv()
+            .await
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("recv failed: {e}")))?;
+
+        // Check response
+        debug!("response: {:?}", response);
+
+        let response_json: PushFrameResponse = serde_json::from_slice(response.get(0).unwrap())
+            .map_err(|e| {
+                io::Error::new(io::ErrorKind::Other, format!("parse response failed: {e}"))
+            })?;
+
+        if response_json.status != 0 {
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                format!("push frame failed: {}", response_json.msg),
+            ));
+        }
+
+        Ok(())
+    }
 }
