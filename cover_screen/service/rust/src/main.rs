@@ -1,12 +1,15 @@
 mod cover_screen;
 
 use cover_screen::{screen::scan_screens, socket::ScreenSocket};
+use log::info;
 use std::error::Error;
 use std::sync::Arc;
 use tokio::{signal, sync::Notify, task};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    env_logger::init();
+
     let screens = scan_screens()?;
 
     let shutdown_notify = Arc::new(Notify::new());
@@ -26,7 +29,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 } => {}
 
                 _ = notify.notified() => {
-                    println!("{} shutdown...", screen_name);
+                    info!("{} shutdown...", screen_name);
                 }
             }
         });
@@ -34,7 +37,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     signal::ctrl_c().await?;
-    println!("Received Ctrl+C, shutting down...");
+    info!("received Ctrl+C, shutting down...");
 
     shutdown_notify.notify_waiters();
 
@@ -42,9 +45,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         worker.await?;
     }
 
-    println!("Cleaning up...");
+    info!("cleaning up...");
     cover_screen::socket::cleanup();
 
-    println!("Shutdown complete.");
+    info!("shutdown complete.");
     Ok(())
 }

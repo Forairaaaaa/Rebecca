@@ -9,7 +9,7 @@ use std::error::Error;
 async fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
 
-    let mut screen = SocketCoverScreen::new("screen0").await?;
+    let mut screen = SocketCoverScreen::new("screen1").await?;
 
     draw_color_bar(&mut screen).await?;
 

@@ -2,6 +2,7 @@ use crate::cover_screen::fb::scan_fb_devices;
 use std::fs::OpenOptions;
 use std::io::{self, Write};
 use std::path::PathBuf;
+use log::debug;
 
 #[derive(Debug, Clone)]
 pub struct ScreenInfo {
@@ -51,11 +52,11 @@ pub fn scan_screens() -> io::Result<Vec<ScreenInfo>> {
 }
 
 pub fn push_frame_buffer(screen: &ScreenInfo, frame_buffer: &[u8]) -> io::Result<()> {
-    // println!(
-    //     "Push frame buffer {} bytes to {}",
-    //     frame_buffer.len(),
-    //     screen.path.display()
-    // );
+    debug!(
+        "push frame buffer {} bytes to {}",
+        frame_buffer.len(),
+        screen.path.display()
+    );
 
     let expected_len = (screen.resolution.0 * screen.resolution.1 * screen.bpp / 8) as usize;
     if frame_buffer.len() != expected_len {

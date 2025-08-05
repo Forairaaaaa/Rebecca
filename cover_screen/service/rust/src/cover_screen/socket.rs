@@ -1,5 +1,6 @@
 use crate::cover_screen::screen::{ScreenInfo, push_frame_buffer};
 use chrono::Utc;
+use log::error;
 use regex::Regex;
 use serde::Serialize;
 use serde_json::json;
@@ -99,7 +100,7 @@ impl ScreenSocket {
                     .unwrap();
             }
             Err(e) => {
-                eprintln!("ZMQ recv error: {:?}", e);
+                error!("ZMQ recv error: {:?}", e);
             }
         }
     }

@@ -1,1 +1,3 @@
-RUST_LOG=INFO cargo run
+export RUST_LOG=INFO
+
+cargo run
