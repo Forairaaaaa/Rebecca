@@ -30,6 +30,8 @@ pub fn convert_bpp(
 
     let mut new_data = Vec::with_capacity((width * height * dst_bytes_per_pixel as u32) as usize);
 
+    debug!("convert_bpp: src_bpp: {}, dst_bpp: {}", src_bpp, dst_bpp);
+
     match (src_bpp, dst_bpp) {
         (24, 32) => {
             // 从 24-bit RGB 转换为 32-bit RGBA
@@ -73,6 +75,19 @@ pub fn convert_bpp(
                 new_data.push(r);
                 new_data.push(g);
                 new_data.push(b);
+            }
+        }
+        (32, 16) => {
+            // 从 32-bit RGBA 转换为 16-bit RGB565
+            debug!("convert 32-bit RGBA to 16-bit RGB565");
+            for i in (0..data.len()).step_by(src_bytes_per_pixel as usize) {
+                let r = data[i];
+                let g = data[i + 1];
+                let b = data[i + 2];
+                let rgb565 = rgb888_to_rgb565(r, g, b);
+                let bytes = rgb565.to_le_bytes();
+                new_data.push(bytes[0]);
+                new_data.push(bytes[1]);
             }
         }
         _ => {
