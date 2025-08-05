@@ -10,20 +10,19 @@ use zeromq::{Socket, SocketRecv, SocketSend};
 const SCREEN_INFO_DIR: &str = "/tmp/cover_screen";
 
 #[derive(Debug, Deserialize)]
-pub struct SocketInfoFile {
-    pub name: String,
-    pub screen_size: (u32, u32),
-    pub bits_per_pixel: u32,
-    pub frame_buffer_port: u16,
-    pub created_at: Option<String>,
-    pub device_path: Option<String>,
+struct _SocketInfoFile {
+    name: String,
+    screen_size: (u32, u32),
+    bits_per_pixel: u32,
+    frame_buffer_port: u16,
+    created_at: Option<String>,
+    device_path: Option<String>,
 }
 
 pub struct SocketCoverScreen {
-    pub name: String,
-    pub socket_info: SocketInfoFile,
+    socket_info: _SocketInfoFile,
     socket: ReqSocket,
-    pub frame_buffer: Vec<u8>,
+    frame_buffer: Vec<u8>,
 }
 
 #[derive(Deserialize)]
@@ -43,7 +42,6 @@ impl SocketCoverScreen {
         let frame_buffer = create_frame_buffer(&socket_info);
 
         Ok(Self {
-            name: name.to_string(),
             socket_info,
             socket,
             frame_buffer,
@@ -51,10 +49,10 @@ impl SocketCoverScreen {
     }
 }
 
-fn get_socket_info(name: &str) -> io::Result<SocketInfoFile> {
+fn get_socket_info(name: &str) -> io::Result<_SocketInfoFile> {
     let info_path = Path::new(SCREEN_INFO_DIR).join(format!("{}.json", name));
     let content = fs::read_to_string(&info_path)?;
-    let info: SocketInfoFile = serde_json::from_str(&content)?;
+    let info: _SocketInfoFile = serde_json::from_str(&content)?;
 
     info!("get socket info: {:#?}", info);
 
@@ -72,7 +70,7 @@ async fn create_socket(port: u16) -> io::Result<ReqSocket> {
     Ok(socket)
 }
 
-fn create_frame_buffer(socket_info: &SocketInfoFile) -> Vec<u8> {
+fn create_frame_buffer(socket_info: &_SocketInfoFile) -> Vec<u8> {
     let size_in_bytes =
         (socket_info.screen_size.0 * socket_info.screen_size.1 * socket_info.bits_per_pixel / 8)
             as usize;

@@ -1,6 +1,7 @@
 // https://en.wikipedia.org/wiki/SMPTE_color_bars
 
 use crate::cover_screen::CoverScreen;
+use crate::player::convertor::convert_bpp;
 use log::info;
 use std::error::Error;
 
@@ -9,25 +10,33 @@ pub async fn draw_color_bar(cover_screen: &mut impl CoverScreen) -> Result<(), B
 
     let width = cover_screen.width();
     let height = cover_screen.height();
-    let bpp = cover_screen.bpp();
-    let frame_buffer = cover_screen.frame_buffer();
+    let target_bpp = cover_screen.bpp();
 
-    draw_smpte_ecr1978(frame_buffer, width as usize, height as usize, bpp as usize);
+    // 先构造自己的 frame buffer，使用 RGB888 (24 bpp) 格式
+    let src_bpp = 24u8;
+    let buffer_size = (width * height * (src_bpp / 8) as u32) as usize;
+    let mut my_frame_buffer = vec![0u8; buffer_size];
+
+    // 在自己的 frame buffer 上绘制
+    draw_smpte_ecr1978_rgb888(&mut my_frame_buffer, width as usize, height as usize);
+
+    // 检查目标 bpp，如果不匹配就转换
+    let final_data = if src_bpp == target_bpp as u8 {
+        my_frame_buffer
+    } else {
+        convert_bpp(&my_frame_buffer, width, height, src_bpp, target_bpp as u8)?
+    };
+
+    // 将数据复制到目标 frame buffer
+    let frame_buffer = cover_screen.frame_buffer();
+    frame_buffer[..final_data.len()].copy_from_slice(&final_data);
 
     cover_screen.push_frame().await?;
 
     Ok(())
 }
 
-fn rgb888_to_rgb565(r: u8, g: u8, b: u8) -> u16 {
-    ((r as u16 & 0xF8) << 8) | ((g as u16 & 0xFC) << 3) | (b as u16 >> 3)
-}
-
-fn draw_smpte_ecr1978(frame_buffer: &mut [u8], width: usize, height: usize, bpp: usize) {
-    if bpp != 16 {
-        panic!("Only RGB565 supported");
-    }
-
+fn draw_smpte_ecr1978_rgb888(frame_buffer: &mut [u8], width: usize, height: usize) {
     let top_height = height * 2 / 3;
     let mid_height = height / 12;
 
@@ -45,7 +54,6 @@ fn draw_smpte_ecr1978(frame_buffer: &mut [u8], width: usize, height: usize, bpp:
     let bar_width = width / top_colors.len();
 
     for (i, &(r, g, b)) in top_colors.iter().enumerate() {
-        let color565 = rgb888_to_rgb565(r, g, b).to_le_bytes();
         let x_start = i * bar_width;
         let x_end = if i == top_colors.len() - 1 {
             width
@@ -55,9 +63,10 @@ fn draw_smpte_ecr1978(frame_buffer: &mut [u8], width: usize, height: usize, bpp:
 
         for y in 0..top_height {
             for x in x_start..x_end {
-                let offset = (y * width + x) * 2;
-                frame_buffer[offset] = color565[0];
-                frame_buffer[offset + 1] = color565[1];
+                let offset = (y * width + x) * 3;
+                frame_buffer[offset] = r;
+                frame_buffer[offset + 1] = g;
+                frame_buffer[offset + 2] = b;
             }
         }
     }
@@ -78,7 +87,6 @@ fn draw_smpte_ecr1978(frame_buffer: &mut [u8], width: usize, height: usize, bpp:
     let mid_y_end = top_height + mid_height;
 
     for (i, &(r, g, b)) in castellation_colors.iter().enumerate() {
-        let color565 = rgb888_to_rgb565(r, g, b).to_le_bytes();
         let x_start = i * castellation_bar_width;
         let x_end = if i == castellation_colors.len() - 1 {
             width
@@ -88,9 +96,10 @@ fn draw_smpte_ecr1978(frame_buffer: &mut [u8], width: usize, height: usize, bpp:
 
         for y in mid_y_start..mid_y_end {
             for x in x_start..x_end {
-                let offset = (y * width + x) * 2;
-                frame_buffer[offset] = color565[0];
-                frame_buffer[offset + 1] = color565[1];
+                let offset = (y * width + x) * 3;
+                frame_buffer[offset] = r;
+                frame_buffer[offset + 1] = g;
+                frame_buffer[offset + 2] = b;
             }
         }
     }
@@ -102,10 +111,10 @@ fn draw_smpte_ecr1978(frame_buffer: &mut [u8], width: usize, height: usize, bpp:
     for y in bot_y_start..bot_y_end {
         for x in 0..width {
             let (r, g, b) = get_bottom_bar_color(x, width);
-            let color565 = rgb888_to_rgb565(r, g, b).to_le_bytes();
-            let offset = (y * width + x) * 2;
-            frame_buffer[offset] = color565[0];
-            frame_buffer[offset + 1] = color565[1];
+            let offset = (y * width + x) * 3;
+            frame_buffer[offset] = r;
+            frame_buffer[offset + 1] = g;
+            frame_buffer[offset + 2] = b;
         }
     }
 }

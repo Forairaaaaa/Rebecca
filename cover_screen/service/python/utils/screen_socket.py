@@ -22,21 +22,15 @@ class _ScreenSocket:
         screen_size: tuple[int, int] = (280, 240),
         screen_depth: int = 4,
         frame_buffer_port=None,
-        command_port=None,
         on_frame_buffer: Callable[[Any], None] = None,
-        on_command: Callable[[Any], None] = None,
     ):
         self._name = name
         self._screen_size = screen_size
         self._screen_depth = screen_depth
         self._on_frame_buffer = on_frame_buffer
-        self._on_command = on_command
 
         self._fb_socket, self._frame_buffer_port = self._create_zmq_socket(
             name, frame_buffer_port
-        )
-        self._ctrl_socket, self._command_port = self._create_zmq_socket(
-            name, command_port
         )
 
         self._create_info_file()
@@ -68,9 +62,8 @@ class _ScreenSocket:
                 {
                     "name": self._name,
                     "screen_size": self._screen_size,
-                    "screen_depth": self._screen_depth,
+                    "bits_per_pixel": self._screen_depth * 8,
                     "frame_buffer_port": self._frame_buffer_port,
-                    "command_port": self._command_port,
                     "created_at": datetime.now().isoformat(),
                 },
                 f,
@@ -93,21 +86,6 @@ class _ScreenSocket:
 
             await self._fb_socket.send_json({"status": 0, "msg": "ok👌"})
 
-    async def _ctrl_worker(self):
-        while True:
-            command: Any = await self._ctrl_socket.recv()
-
-            try:
-                if self._on_command is None:
-                    raise Exception("empty on_command callback")
-                self._on_command(command)
-            except Exception as e:
-                logger.error(f"[{self._name}] error: {e}")
-                await self._ctrl_socket.send_json({"status": -1, "msg": str(e)})
-                continue
-
-            await self._ctrl_socket.send_json({"status": 0, "msg": "ok👌"})
-
 
 _screen_socket_instances = []
 
@@ -117,9 +95,7 @@ def create_socket(
     screen_size: tuple[int, int] = (280, 240),
     screen_depth: int = 4,
     frame_buffer_port=None,
-    command_port=None,
     on_frame_buffer: Callable[[Any], None] = None,
-    on_command: Callable[[Any], None] = None,
 ):
     global _screen_socket_instances
 
@@ -128,9 +104,7 @@ def create_socket(
         screen_size=screen_size,
         screen_depth=screen_depth,
         frame_buffer_port=frame_buffer_port,
-        command_port=command_port,
         on_frame_buffer=on_frame_buffer,
-        on_command=on_command,
     )
     _screen_socket_instances.append(screen_socket)
 
