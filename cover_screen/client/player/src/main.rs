@@ -24,7 +24,7 @@ struct Args {
     resource: Option<PathBuf>,
 
     /// Render resize mode
-    #[arg(short, long, value_enum, default_value_t = ResizeMode::Letterbox)]
+    #[arg(short, long, value_enum, default_value_t = ResizeMode::Fill)]
     resize_mode: ResizeMode,
 }
 
