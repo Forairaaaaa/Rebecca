@@ -5,6 +5,7 @@ use clap::Parser;
 use cover_screen::SocketCoverScreen;
 use log::debug;
 use player::color_bar::draw_color_bar;
+use player::downloader::{cleanup_tmp_files, download_resource};
 use player::image::{ResizeMode, draw_image};
 use std::{error::Error, path::PathBuf};
 
@@ -36,8 +37,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let mut screen = SocketCoverScreen::new(&args.screen).await?;
 
-    if let Some(resource) = args.resource {
+    if let Some(mut resource) = args.resource {
+        if args.url {
+            let (path, content_type) = download_resource(resource.to_str().unwrap()).await?;
+            resource = path;
+        }
+
         draw_image(&mut screen, resource, args.resize_mode).await?;
+
+        cleanup_tmp_files()?;
     } else {
         draw_color_bar(&mut screen).await?;
     }
