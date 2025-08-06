@@ -14,6 +14,10 @@ struct Args {
     /// Name of the cover screen, e.g. screen0 for /tmp/cover_screen/screen0.json
     screen: String,
 
+    /// Set if the resource path is a URL
+    #[arg(short, long)]
+    url: bool,
+
     /// Target resource path, e.g. ~/wtf.png, if not provided, draw color bar
     #[arg(default_value = None)]
     resource: Option<PathBuf>,
