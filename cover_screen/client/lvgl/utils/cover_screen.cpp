@@ -9,6 +9,7 @@
  *
  */
 #include "cover_screen.h"
+#include <cstdint>
 #include <nlohmann/json.hpp>
 #include <mooncake_log.h>
 #include <unordered_map>
@@ -27,9 +28,44 @@ static zmq::context_t _context(1);
 static std::vector<ScreenInfo_t> _screens;
 static std::unordered_map<std::string, int> _screen_index_map;
 
+// basically for python screen service
+static uint8_t* _converted_data = nullptr;
+static void convert_to_bpp32(const ScreenInfo_t& screen, uint8_t* data, size_t size)
+{
+    if (!_converted_data) {
+        _converted_data = new uint8_t[screen.width * screen.height * sizeof(uint32_t)];
+    }
+
+    uint32_t* dst = reinterpret_cast<uint32_t*>(_converted_data);
+    uint16_t* src = reinterpret_cast<uint16_t*>(data);
+
+    for (size_t i = 0; i < screen.width * screen.height; ++i) {
+        uint16_t pixel = src[i];
+
+        // 提取 RGB565 分量
+        uint8_t r5 = (pixel >> 11) & 0x1F;
+        uint8_t g6 = (pixel >> 5) & 0x3F;
+        uint8_t b5 = pixel & 0x1F;
+
+        // 转换成 8-bit 分量（扩展位数）
+        uint8_t r8 = (r5 << 3) | (r5 >> 2); // 5-bit -> 8-bit
+        uint8_t g8 = (g6 << 2) | (g6 >> 4); // 6-bit -> 8-bit
+        uint8_t b8 = (b5 << 3) | (b5 >> 2); // 5-bit -> 8-bit
+
+        // 组装成 RGBA（A通道设为255）
+        dst[i] = (255 << 24) | (b8 << 16) | (g8 << 8) | r8;
+    }
+}
+
 bool ScreenInfo_t::pushFrame(uint8_t* data, size_t size)
 {
     try {
+        if (bits_per_pixel == 32) {
+            convert_to_bpp32(*this, data, size);
+            data = _converted_data;
+            size = width * height * sizeof(uint32_t);
+        }
+
         // Zero-copy send
         zmq::message_t msg(data, size, nullptr, nullptr);
         socket->send(msg, zmq::send_flags::none);
@@ -75,12 +111,13 @@ void connect(std::string infoDir)
                 screen.socket->connect(addr);
 
                 mclog::info(
-                    "Connected to {} for screen:\n  name: {}\n  size: {} x {}\n  frame_buffer_port: {}\n  "
+                    "Connected to {} for screen:\n  name: {}\n  size: {} x {}\n  bbp: {}\n  frame_buffer_port: {}\n  "
                     "command_port: {}",
                     addr,
                     screen.name,
                     screen.width,
                     screen.height,
+                    screen.bits_per_pixel,
                     screen.frame_buffer_port,
                     screen.command_port);
 
