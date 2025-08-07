@@ -1,67 +1,94 @@
 use crate::cover_screen::CoverScreen;
-use crate::player::convertor::convert_bpp;
-use crate::player::types::ResizeMode;
+use crate::player::BppConverter;
+use crate::player::ResizeMode;
 use image::{DynamicImage, GenericImageView, ImageBuffer, Rgba};
 use log::debug;
 use std::{error::Error, path::Path};
 
-pub async fn draw_image_from_data(
-    screen: &mut impl CoverScreen,
-    image_data: &[u8],
-    width: u32,
-    height: u32,
-) -> Result<(), Box<dyn Error>> {
-    let src_bpp = 32; // RGBA8 格式
-    let dst_bpp = screen.bpp() as u8;
+pub struct ImageRenderer {}
 
-    // 如果 bpp 不匹配，转换 bpp
-    let converted = if src_bpp != dst_bpp {
-        convert_bpp(image_data, width, height, src_bpp, dst_bpp)?
-    } else {
-        image_data.to_vec()
-    };
+impl ImageRenderer {
+    /// Render image from image data
+    /// # Arguments
+    /// * `screen` - The screen to render the image to
+    /// * `image_data` - The image data to render, rgba8 format
+    /// * `width` - The width of the image
+    /// * `height` - The height of the image
+    /// # Returns
+    /// * `Result<(), Box<dyn Error>>` - The result of the operation
+    pub async fn from_image_data(
+        screen: &mut impl CoverScreen,
+        image_data: &[u8],
+        width: u32,
+        height: u32,
+    ) -> Result<(), Box<dyn Error>> {
+        let src_bpp = 32; // RGBA8 格式
+        let dst_bpp = screen.bpp() as u8;
 
-    // 复制数据并推送
-    screen.frame_buffer().copy_from_slice(&converted);
-    screen.push_frame().await?;
+        // 如果 bpp 不匹配，转换 bpp
+        let converted = if src_bpp != dst_bpp {
+            BppConverter::convert(image_data, width, height, src_bpp, dst_bpp)?
+        } else {
+            image_data.to_vec()
+        };
 
-    Ok(())
-}
+        // 复制数据并推送
+        screen.frame_buffer().copy_from_slice(&converted);
+        screen.push_frame().await?;
 
-pub async fn draw_image_from_file<P: AsRef<Path>>(
-    screen: &mut impl CoverScreen,
-    path: P,
-    resize_mode: ResizeMode,
-) -> Result<(), Box<dyn Error>> {
-    debug!("draw image: {}", path.as_ref().display());
+        Ok(())
+    }
 
-    let width = screen.width();
-    let height = screen.height();
-    let img = image::open(path)?;
+    /// Render image from file
+    /// # Arguments
+    /// * `screen` - The screen to render the image to
+    /// * `path` - The path to the image file
+    /// * `resize_mode` - The resize mode to apply to the image
+    /// # Returns
+    /// * `Result<(), Box<dyn Error>>` - The result of the operation
+    pub async fn from_file<P: AsRef<Path>>(
+        screen: &mut impl CoverScreen,
+        path: P,
+        resize_mode: ResizeMode,
+    ) -> Result<(), Box<dyn Error>> {
+        debug!("draw image: {}", path.as_ref().display());
 
-    let resized_img = resize_image(&img, width, height, &resize_mode);
+        let width = screen.width();
+        let height = screen.height();
+        let img = image::open(path)?;
 
-    let src_data = resized_img.to_rgba8().into_raw();
-    draw_image_from_data(screen, &src_data, width, height).await?;
+        let resized_img = Self::resize(&img, width, height, &resize_mode);
 
-    Ok(())
+        let src_data = resized_img.to_rgba8().into_raw();
+        Self::from_image_data(screen, &src_data, width, height).await?;
+
+        Ok(())
+    }
+
+    /// Resize image to fit the screen
+    /// # Arguments
+    /// * `img` - The image to resize
+    /// * `screen_width` - The width of the screen
+    /// * `screen_height` - The height of the screen
+    /// * `resize_mode` - The resize mode to apply to the image
+    /// # Returns
+    /// * <DynamicImage> Resized image
+    pub fn resize(
+        img: &DynamicImage,
+        screen_width: u32,
+        screen_height: u32,
+        resize_mode: &ResizeMode,
+    ) -> DynamicImage {
+        debug!("resize image in {:?}", resize_mode);
+        match resize_mode {
+            ResizeMode::Stretch => resize_stretch(img, screen_width, screen_height),
+            ResizeMode::Letterbox => resize_letterbox(img, screen_width, screen_height),
+            ResizeMode::Fill => resize_fill(img, screen_width, screen_height),
+        }
+    }
 }
 
 const RESIZE_FILTER: image::imageops::FilterType = image::imageops::FilterType::Triangle;
-
-pub fn resize_image(
-    img: &DynamicImage,
-    screen_width: u32,
-    screen_height: u32,
-    resize_mode: &ResizeMode,
-) -> DynamicImage {
-    debug!("resize image in {:?}", resize_mode);
-    match resize_mode {
-        ResizeMode::Stretch => resize_stretch(img, screen_width, screen_height),
-        ResizeMode::Letterbox => resize_letterbox(img, screen_width, screen_height),
-        ResizeMode::Fill => resize_fill(img, screen_width, screen_height),
-    }
-}
 
 fn resize_stretch(img: &DynamicImage, screen_w: u32, screen_h: u32) -> DynamicImage {
     img.resize_exact(screen_w, screen_h, RESIZE_FILTER)

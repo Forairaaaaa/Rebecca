@@ -1,6 +1,6 @@
 use crate::cover_screen::CoverScreen;
-use crate::player::image::{draw_image_from_data, resize_image};
-use crate::player::types::ResizeMode;
+use crate::player::ImageRenderer;
+use crate::player::ResizeMode;
 use image::codecs::gif::GifDecoder;
 use image::{AnimationDecoder, Delay};
 use log::debug;
@@ -8,21 +8,45 @@ use std::fs::File;
 use std::io::BufReader;
 use std::{error::Error, path::Path};
 
-pub async fn play_gif<P: AsRef<Path>>(
-    screen: &mut impl CoverScreen,
-    path: P,
-    resize_mode: ResizeMode,
-) -> Result<(), Box<dyn Error>> {
-    debug!("play gif from {}", path.as_ref().display());
+pub struct GifPlayer {}
 
-    let image_data_frames = convert_to_image_data_frames(screen, path, resize_mode)?;
+impl GifPlayer {
+    /// Play gif from file
+    /// # Arguments
+    /// * `screen` - The screen to render the gif to
+    /// * `path` - The path to the gif file
+    /// * `resize_mode` - The resize mode to apply to the gif
+    /// # Returns
+    /// * `Result<(), Box<dyn Error>>` - The result of the operation
+    pub async fn from_file<P: AsRef<Path>>(
+        screen: &mut impl CoverScreen,
+        path: P,
+        resize_mode: ResizeMode,
+        in_loop: bool,
+    ) -> Result<(), Box<dyn Error>> {
+        debug!("play gif from {}", path.as_ref().display());
 
-    for (image_data, delay) in image_data_frames {
-        draw_image_from_data(screen, &image_data, screen.width(), screen.height()).await?;
-        tokio::time::sleep(delay.into()).await;
+        let image_data_frames = convert_to_image_data_frames(screen, path, resize_mode)?;
+
+        loop {
+            for (image_data, delay) in &image_data_frames {
+                ImageRenderer::from_image_data(
+                    screen,
+                    &image_data,
+                    screen.width(),
+                    screen.height(),
+                )
+                .await?;
+                tokio::time::sleep(delay.clone().into()).await;
+            }
+
+            if !in_loop {
+                break;
+            }
+        }
+
+        Ok(())
     }
-
-    Ok(())
 }
 
 fn convert_to_image_data_frames<P: AsRef<Path>>(
@@ -57,7 +81,7 @@ fn convert_to_image_data_frames<P: AsRef<Path>>(
         );
 
         let img: image::DynamicImage = image::DynamicImage::ImageRgba8(frame_data.clone());
-        let resized_img = resize_image(&img, width, height, &resize_mode);
+        let resized_img = ImageRenderer::resize(&img, width, height, &resize_mode);
         let image_data = resized_img.to_rgba8().into_raw();
         image_data_frames.push((image_data, delay));
     }

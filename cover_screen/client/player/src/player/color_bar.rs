@@ -1,39 +1,48 @@
 // https://en.wikipedia.org/wiki/SMPTE_color_bars
 
 use crate::cover_screen::CoverScreen;
-use crate::player::convertor::convert_bpp;
+use crate::player::BppConverter;
 use log::info;
 use std::error::Error;
 
-pub async fn draw_color_bar(cover_screen: &mut impl CoverScreen) -> Result<(), Box<dyn Error>> {
-    info!("draw color bar");
+pub struct ColorBar {}
 
-    let width = cover_screen.width();
-    let height = cover_screen.height();
-    let target_bpp = cover_screen.bpp();
+impl ColorBar {
+    /// Draw color bar
+    /// # Arguments
+    /// * `cover_screen` - The cover screen to draw the color bar to
+    /// # Returns
+    /// * `Result<(), Box<dyn Error>>` - The result of the operation
+    pub async fn draw(cover_screen: &mut impl CoverScreen) -> Result<(), Box<dyn Error>> {
+        info!("draw color bar");
 
-    // 先构造自己的 frame buffer，使用 RGB888 (24 bpp) 格式
-    let src_bpp = 24u8;
-    let buffer_size = (width * height * (src_bpp / 8) as u32) as usize;
-    let mut my_frame_buffer = vec![0u8; buffer_size];
+        let width = cover_screen.width();
+        let height = cover_screen.height();
+        let target_bpp = cover_screen.bpp();
 
-    // 在自己的 frame buffer 上绘制
-    draw_smpte_ecr1978_rgb888(&mut my_frame_buffer, width as usize, height as usize);
+        // 先构造自己的 frame buffer，使用 RGB888 (24 bpp) 格式
+        let src_bpp = 24u8;
+        let buffer_size = (width * height * (src_bpp / 8) as u32) as usize;
+        let mut my_frame_buffer = vec![0u8; buffer_size];
 
-    // 检查目标 bpp，如果不匹配就转换
-    let final_data = if src_bpp == target_bpp as u8 {
-        my_frame_buffer
-    } else {
-        convert_bpp(&my_frame_buffer, width, height, src_bpp, target_bpp as u8)?
-    };
+        // 在自己的 frame buffer 上绘制
+        draw_smpte_ecr1978_rgb888(&mut my_frame_buffer, width as usize, height as usize);
 
-    // 将数据复制到目标 frame buffer
-    let frame_buffer = cover_screen.frame_buffer();
-    frame_buffer[..final_data.len()].copy_from_slice(&final_data);
+        // 检查目标 bpp，如果不匹配就转换
+        let final_data = if src_bpp == target_bpp as u8 {
+            my_frame_buffer
+        } else {
+            BppConverter::convert(&my_frame_buffer, width, height, src_bpp, target_bpp as u8)?
+        };
 
-    cover_screen.push_frame().await?;
+        // 将数据复制到目标 frame buffer
+        let frame_buffer = cover_screen.frame_buffer();
+        frame_buffer[..final_data.len()].copy_from_slice(&final_data);
 
-    Ok(())
+        cover_screen.push_frame().await?;
+
+        Ok(())
+    }
 }
 
 fn draw_smpte_ecr1978_rgb888(frame_buffer: &mut [u8], width: usize, height: usize) {

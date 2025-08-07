@@ -4,11 +4,7 @@ mod player;
 use clap::Parser;
 use cover_screen::SocketCoverScreen;
 use log::debug;
-use player::color_bar::draw_color_bar;
-use player::downloader::{cleanup_tmp_files, download_resource};
-use player::gif::play_gif;
-use player::image::draw_image_from_file;
-use player::types::ResizeMode;
+use player::{ColorBar, Downloader, GifPlayer, ImageRenderer, ResizeMode};
 use std::{error::Error, path::PathBuf};
 
 #[derive(Parser, Debug)]
@@ -28,6 +24,10 @@ struct Args {
     /// Render resize mode
     #[arg(short, long, value_enum, default_value_t = ResizeMode::Fill)]
     resize_mode: ResizeMode,
+
+    /// Play in loop
+    #[arg(short, long, default_value_t = true)]
+    in_loop: bool,
 }
 
 #[tokio::main]
@@ -41,17 +41,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     if let Some(mut resource) = args.resource {
         if args.url {
-            let (path, content_type) = download_resource(resource.to_str().unwrap()).await?;
+            let (path, content_type) = Downloader::from_url(resource.to_str().unwrap()).await?;
             resource = path;
         }
 
-        // draw_image_from_file(&mut screen, resource, args.resize_mode).await?;
+        ImageRenderer::from_file(&mut screen, resource, args.resize_mode).await?;
 
-        play_gif(&mut screen, resource, args.resize_mode).await?;
+        // GifPlayer::from_file(&mut screen, resource, args.resize_mode, args.in_loop).await?;
 
-        cleanup_tmp_files()?;
+        Downloader::cleanup()?;
     } else {
-        draw_color_bar(&mut screen).await?;
+        ColorBar::draw(&mut screen).await?;
     }
 
     Ok(())
