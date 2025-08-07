@@ -45,7 +45,7 @@ impl Downloader {
         let bytes = response.bytes().await?;
         tokio::fs::write(&path, &bytes).await?;
 
-        Ok((path, content_type))
+        Ok((path, ext.to_string()))
     }
 
     pub fn cleanup() -> Result<(), Box<dyn Error>> {

@@ -3,7 +3,7 @@ mod player;
 
 use clap::Parser;
 use cover_screen::SocketCoverScreen;
-use log::debug;
+use log::{debug, error};
 use player::{ColorBar, Downloader, GifPlayer, ImageRenderer, ResizeMode};
 use std::{error::Error, path::PathBuf};
 
@@ -30,6 +30,9 @@ struct Args {
     in_loop: bool,
 }
 
+const IMAGE_EXTS: [&str; 6] = ["jpg", "jpeg", "png", "webp", "bmp", "tiff"];
+const GIF_EXT: &str = "gif";
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
@@ -39,18 +42,39 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let mut screen = SocketCoverScreen::new(&args.screen).await?;
 
+    // If resource is provided
     if let Some(mut resource) = args.resource {
+        let resource_ext: String;
+
         if args.url {
-            let (path, content_type) = Downloader::from_url(resource.to_str().unwrap()).await?;
+            let (path, ext) = Downloader::from_url(resource.to_str().unwrap()).await?;
             resource = path;
+            resource_ext = ext;
+        } else {
+            resource_ext = resource
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .unwrap_or_default()
+                .to_string();
         }
 
-        ImageRenderer::from_file(&mut screen, resource, args.resize_mode).await?;
-
-        // GifPlayer::from_file(&mut screen, resource, args.resize_mode, args.in_loop).await?;
+        // Map renderer
+        match resource_ext.as_str() {
+            ext if IMAGE_EXTS.contains(&ext) => {
+                ImageRenderer::from_file(&mut screen, resource, args.resize_mode).await?;
+            }
+            ext if ext == GIF_EXT => {
+                GifPlayer::from_file(&mut screen, resource, args.resize_mode, args.in_loop).await?;
+            }
+            _ => {
+                error!("unsupported extension: {}", resource.display());
+            }
+        }
 
         Downloader::cleanup()?;
-    } else {
+    }
+    // If not, draw color bar
+    else {
         ColorBar::draw(&mut screen).await?;
     }
 

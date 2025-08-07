@@ -1,12 +1,12 @@
 pub mod color_bar;
-mod convertor;
+mod converter;
 pub mod downloader;
 pub mod gif;
 pub mod image;
 pub mod types;
 
 pub use color_bar::ColorBar;
-pub use convertor::BppConverter;
+pub use converter::BppConverter;
 pub use downloader::Downloader;
 pub use gif::GifPlayer;
 pub use image::ImageRenderer;
