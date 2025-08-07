@@ -1,71 +1,73 @@
 use crate::cover_screen::CoverScreen;
 use crate::player::convertor::convert_bpp;
-use clap::ValueEnum;
-use image::{GenericImageView, ImageBuffer, Rgba, RgbaImage};
-use log::info;
+use crate::player::types::ResizeMode;
+use image::{DynamicImage, GenericImageView, ImageBuffer, Rgba};
+use log::debug;
 use std::{error::Error, path::Path};
 
-#[derive(Debug, Clone, ValueEnum)]
-pub enum ResizeMode {
-    Stretch,   // 拉伸
-    Letterbox, // 等比缩放，居中显示
-    Fill,      // 等比缩放，填满屏幕（可能裁剪）
+pub async fn draw_image_from_data(
+    screen: &mut impl CoverScreen,
+    image_data: &[u8],
+    width: u32,
+    height: u32,
+) -> Result<(), Box<dyn Error>> {
+    let src_bpp = 32; // RGBA8 格式
+    let dst_bpp = screen.bpp() as u8;
+
+    // 如果 bpp 不匹配，转换 bpp
+    let converted = if src_bpp != dst_bpp {
+        convert_bpp(image_data, width, height, src_bpp, dst_bpp)?
+    } else {
+        image_data.to_vec()
+    };
+
+    // 复制数据并推送
+    screen.frame_buffer().copy_from_slice(&converted);
+    screen.push_frame().await?;
+
+    Ok(())
 }
 
-pub async fn draw_image<P: AsRef<Path>>(
+pub async fn draw_image_from_file<P: AsRef<Path>>(
     screen: &mut impl CoverScreen,
     path: P,
     resize_mode: ResizeMode,
 ) -> Result<(), Box<dyn Error>> {
-    info!("draw image: {}", path.as_ref().display());
+    debug!("draw image: {}", path.as_ref().display());
 
-    // 加载图片
+    let width = screen.width();
+    let height = screen.height();
     let img = image::open(path)?;
 
-    let (screen_width, screen_height) = (screen.width(), screen.height());
+    let resized_img = resize_image(&img, width, height, &resize_mode);
 
-    // 调整图像尺寸
-    info!("resize image in {:?}", resize_mode);
-    let resized_img = match resize_mode {
-        ResizeMode::Stretch => resize_stretch(&img, screen_width, screen_height),
-        ResizeMode::Letterbox => resize_letterbox(&img, screen_width, screen_height),
-        ResizeMode::Fill => resize_fill(&img, screen_width, screen_height),
-    };
-
-    // 获取像素格式：RGBA8
-    let src_data = resized_img.as_raw();
-
-    let src_bpp = 32;
-    let dst_bpp = screen.bpp() as u8;
-
-    // 转换像素格式（bpp）
-    let converted = if src_bpp != dst_bpp {
-        convert_bpp(src_data, screen_width, screen_height, src_bpp, dst_bpp)?
-    } else {
-        src_data.clone()
-    };
-
-    // 将转换后的数据写入 frame buffer
-    let fb = screen.frame_buffer();
-    if fb.len() != converted.len() {
-        fb.resize(converted.len(), 0); // 确保大小一致
-    }
-    fb.copy_from_slice(&converted);
-
-    // 调用 push_frame 显示
-    screen.push_frame().await?;
+    let src_data = resized_img.to_rgba8().into_raw();
+    draw_image_from_data(screen, &src_data, width, height).await?;
 
     Ok(())
 }
 
 const RESIZE_FILTER: image::imageops::FilterType = image::imageops::FilterType::Triangle;
 
-fn resize_stretch(img: &image::DynamicImage, screen_w: u32, screen_h: u32) -> RgbaImage {
-    img.resize_exact(screen_w, screen_h, RESIZE_FILTER)
-        .to_rgba8()
+pub fn resize_image(
+    img: &DynamicImage,
+    screen_width: u32,
+    screen_height: u32,
+    resize_mode: &ResizeMode,
+) -> DynamicImage {
+    debug!("resize image in {:?}", resize_mode);
+    match resize_mode {
+        ResizeMode::Stretch => resize_stretch(img, screen_width, screen_height),
+        ResizeMode::Letterbox => resize_letterbox(img, screen_width, screen_height),
+        ResizeMode::Fill => resize_fill(img, screen_width, screen_height),
+    }
 }
 
-fn resize_letterbox(img: &image::DynamicImage, screen_w: u32, screen_h: u32) -> RgbaImage {
+fn resize_stretch(img: &DynamicImage, screen_w: u32, screen_h: u32) -> DynamicImage {
+    img.resize_exact(screen_w, screen_h, RESIZE_FILTER)
+}
+
+fn resize_letterbox(img: &DynamicImage, screen_w: u32, screen_h: u32) -> DynamicImage {
     let (img_w, img_h) = img.dimensions();
     let img_ratio = img_w as f32 / img_h as f32;
     let screen_ratio = screen_w as f32 / screen_h as f32;
@@ -87,10 +89,10 @@ fn resize_letterbox(img: &image::DynamicImage, screen_w: u32, screen_h: u32) -> 
     let offset_y = (screen_h - target_h) / 2;
     image::imageops::overlay(&mut full_image, &resized, offset_x.into(), offset_y.into());
 
-    full_image
+    DynamicImage::ImageRgba8(full_image)
 }
 
-fn resize_fill(img: &image::DynamicImage, screen_w: u32, screen_h: u32) -> RgbaImage {
+fn resize_fill(img: &DynamicImage, screen_w: u32, screen_h: u32) -> DynamicImage {
     let (img_w, img_h) = img.dimensions();
     let img_ratio = img_w as f32 / img_h as f32;
     let screen_ratio = screen_w as f32 / screen_h as f32;
@@ -121,5 +123,5 @@ fn resize_fill(img: &image::DynamicImage, screen_w: u32, screen_h: u32) -> RgbaI
     // 将缩放后的图片覆盖到屏幕图像上，超出部分会被裁剪
     image::imageops::overlay(&mut full_image, &resized, offset_x.into(), offset_y.into());
 
-    full_image
+    DynamicImage::ImageRgba8(full_image)
 }

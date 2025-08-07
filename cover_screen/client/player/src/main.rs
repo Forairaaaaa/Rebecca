@@ -6,7 +6,9 @@ use cover_screen::SocketCoverScreen;
 use log::debug;
 use player::color_bar::draw_color_bar;
 use player::downloader::{cleanup_tmp_files, download_resource};
-use player::image::{ResizeMode, draw_image};
+use player::gif::play_gif;
+use player::image::draw_image_from_file;
+use player::types::ResizeMode;
 use std::{error::Error, path::PathBuf};
 
 #[derive(Parser, Debug)]
@@ -43,7 +45,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
             resource = path;
         }
 
-        draw_image(&mut screen, resource, args.resize_mode).await?;
+        // draw_image_from_file(&mut screen, resource, args.resize_mode).await?;
+
+        play_gif(&mut screen, resource, args.resize_mode).await?;
 
         cleanup_tmp_files()?;
     } else {
