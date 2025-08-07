@@ -22,7 +22,7 @@ impl GifPlayer {
         screen: &mut impl CoverScreen,
         path: P,
         resize_mode: ResizeMode,
-        in_loop: bool,
+        repeat: bool,
     ) -> Result<(), Box<dyn Error>> {
         debug!("play gif from {}", path.as_ref().display());
 
@@ -40,7 +40,7 @@ impl GifPlayer {
                 tokio::time::sleep(delay.clone().into()).await;
             }
 
-            if !in_loop {
+            if !repeat {
                 break;
             }
         }

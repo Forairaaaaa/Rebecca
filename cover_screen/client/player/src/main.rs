@@ -13,13 +13,9 @@ struct Args {
     /// Name of the cover screen, e.g. screen0 for /tmp/cover_screen/screen0.json
     screen: String,
 
-    /// Set if the resource path is a URL
+    /// Set if the target resource is a URL
     #[arg(short, long)]
     url: bool,
-
-    /// Target resource path, e.g. ~/wtf.png, if not provided, draw color bar
-    #[arg(default_value = None)]
-    resource: Option<PathBuf>,
 
     /// Render resize mode
     #[arg(short, long, value_enum, default_value_t = ResizeMode::Fill)]
@@ -27,7 +23,15 @@ struct Args {
 
     /// Play in loop
     #[arg(short, long, default_value_t = true)]
-    in_loop: bool,
+    repeat: bool,
+
+    /// Is target resource a video
+    #[arg(short, long, default_value_t = false)]
+    video: bool,
+
+    /// Target resource path, e.g. ~/wtf.png, if not provided, draw color bar
+    #[arg(default_value = None)]
+    resource: Option<PathBuf>,
 }
 
 const IMAGE_EXTS: [&str; 6] = ["jpg", "jpeg", "png", "webp", "bmp", "tiff"];
@@ -64,7 +68,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 ImageRenderer::from_file(&mut screen, resource, args.resize_mode).await?;
             }
             ext if ext == GIF_EXT => {
-                GifPlayer::from_file(&mut screen, resource, args.resize_mode, args.in_loop).await?;
+                GifPlayer::from_file(&mut screen, resource, args.resize_mode, args.repeat).await?;
             }
             _ => {
                 error!("unsupported extension: {}", resource.display());
