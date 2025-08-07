@@ -4,7 +4,7 @@ mod player;
 use clap::Parser;
 use cover_screen::SocketCoverScreen;
 use log::{debug, error};
-use player::{ColorBar, Downloader, GifPlayer, ImageRenderer, ResizeMode};
+use player::{ColorBar, Downloader, GifPlayer, ImageRenderer, ResizeMode, VideoPlayer};
 use std::{error::Error, path::PathBuf};
 
 #[derive(Parser, Debug)]
@@ -18,11 +18,11 @@ struct Args {
     url: bool,
 
     /// Render resize mode
-    #[arg(short, long, value_enum, default_value_t = ResizeMode::Fill)]
+    #[arg(long, value_enum, default_value_t = ResizeMode::Fill)]
     resize_mode: ResizeMode,
 
     /// Play in loop
-    #[arg(short, long, default_value_t = true)]
+    #[arg(short, long, default_value_t = false)]
     repeat: bool,
 
     /// Is target resource a video
@@ -48,34 +48,42 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // If resource is provided
     if let Some(mut resource) = args.resource {
-        let resource_ext: String;
-
-        if args.url {
-            let (path, ext) = Downloader::from_url(resource.to_str().unwrap()).await?;
-            resource = path;
-            resource_ext = ext;
-        } else {
-            resource_ext = resource
-                .extension()
-                .and_then(|ext| ext.to_str())
-                .unwrap_or_default()
-                .to_string();
+        // If target is video
+        if args.video {
+            VideoPlayer::from_target(&mut screen, resource, args.resize_mode, args.repeat).await?;
         }
+        // If target is image
+        else {
+            let resource_ext: String;
 
-        // Map renderer
-        match resource_ext.as_str() {
-            ext if IMAGE_EXTS.contains(&ext) => {
-                ImageRenderer::from_file(&mut screen, resource, args.resize_mode).await?;
+            if args.url {
+                let (path, ext) = Downloader::from_url(resource.to_str().unwrap()).await?;
+                resource = path;
+                resource_ext = ext;
+            } else {
+                resource_ext = resource
+                    .extension()
+                    .and_then(|ext| ext.to_str())
+                    .unwrap_or_default()
+                    .to_string();
             }
-            ext if ext == GIF_EXT => {
-                GifPlayer::from_file(&mut screen, resource, args.resize_mode, args.repeat).await?;
+
+            // Map renderer
+            match resource_ext.as_str() {
+                ext if IMAGE_EXTS.contains(&ext) => {
+                    ImageRenderer::from_file(&mut screen, resource, args.resize_mode).await?;
+                }
+                ext if ext == GIF_EXT => {
+                    GifPlayer::from_file(&mut screen, resource, args.resize_mode, args.repeat)
+                        .await?;
+                }
+                _ => {
+                    error!("unsupported extension: {}", resource.display());
+                }
             }
-            _ => {
-                error!("unsupported extension: {}", resource.display());
-            }
+
+            Downloader::cleanup()?;
         }
-
-        Downloader::cleanup()?;
     }
     // If not, draw color bar
     else {

@@ -3,7 +3,7 @@ use crate::player::ImageRenderer;
 use crate::player::ResizeMode;
 use image::codecs::gif::GifDecoder;
 use image::{AnimationDecoder, Delay};
-use log::debug;
+use log::{debug, info};
 use std::fs::File;
 use std::io::BufReader;
 use std::{error::Error, path::Path};
@@ -16,6 +16,7 @@ impl GifPlayer {
     /// * `screen` - The screen to render the gif to
     /// * `path` - The path to the gif file
     /// * `resize_mode` - The resize mode to apply to the gif
+    /// * `repeat` - Whether to play the gif in loop
     /// # Returns
     /// * `Result<(), Box<dyn Error>>` - The result of the operation
     pub async fn from_file<P: AsRef<Path>>(
@@ -24,10 +25,12 @@ impl GifPlayer {
         resize_mode: ResizeMode,
         repeat: bool,
     ) -> Result<(), Box<dyn Error>> {
-        debug!("play gif from {}", path.as_ref().display());
+        info!("play gif: {}", path.as_ref().display());
 
+        info!("caching resized frames...");
         let image_data_frames = convert_to_image_data_frames(screen, path, resize_mode)?;
 
+        info!("playing gif...");
         loop {
             for (image_data, delay) in &image_data_frames {
                 ImageRenderer::from_image_data(
