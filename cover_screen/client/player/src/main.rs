@@ -3,6 +3,7 @@ mod player;
 
 use clap::Parser;
 use cover_screen::SocketCoverScreen;
+use env_logger::Env;
 use log::{debug, error};
 use player::{ColorBar, Downloader, FFmpeg, GifPlayer, ImageRenderer, ResizeMode, VideoPlayer};
 use std::{error::Error, path::PathBuf};
@@ -26,8 +27,12 @@ struct Args {
     repeat: bool,
 
     /// Is target resource a video
-    #[arg(short, long, default_value_t = false)]
+    #[arg(long, default_value_t = false)]
     video: bool,
+
+    /// Verbose mode
+    #[arg(short, long, default_value_t = false)]
+    verbose: bool,
 
     /// Target resource path, e.g. ~/wtf.png, if not provided, draw color bar
     #[arg(default_value = None)]
@@ -39,13 +44,23 @@ const GIF_EXT: &str = "gif";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    env_logger::init();
-
     let args = Args::parse();
+
+    // Init logger
+    env_logger::Builder::from_env(Env::default().default_filter_or(if args.verbose {
+        "debug"
+    } else {
+        "warn"
+    }))
+    .init();
+
     debug!("get args: {:#?}", args);
 
     // Create screen
-    let mut screen = SocketCoverScreen::new(&args.screen).await?;
+    let mut screen = SocketCoverScreen::new(&args.screen).await.map_err(|e| {
+        error!("failed to create screen: {}", e);
+        e
+    })?;
 
     // Check ffmpeg
     if !FFmpeg::check_ffmpeg_installed().await {

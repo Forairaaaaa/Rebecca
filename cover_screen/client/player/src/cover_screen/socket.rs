@@ -25,7 +25,7 @@ pub struct SocketCoverScreen {
     frame_buffer: Vec<u8>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct PushFrameResponse {
     status: u8,
     msg: String,
@@ -117,12 +117,14 @@ impl CoverScreen for SocketCoverScreen {
             .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("recv failed: {e}")))?;
 
         // Check response
-        debug!("response: {:?}", response);
+        // debug!("response: {:?}", response);
 
         let response_json: PushFrameResponse = serde_json::from_slice(response.get(0).unwrap())
             .map_err(|e| {
                 io::Error::new(io::ErrorKind::Other, format!("parse response failed: {e}"))
             })?;
+
+        debug!("response: {:?}", response_json);
 
         if response_json.status != 0 {
             return Err(io::Error::new(
