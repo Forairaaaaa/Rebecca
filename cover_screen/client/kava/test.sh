@@ -1,7 +1,5 @@
 #!/bin/bash
 
-PLAYER=./target/release/cover-screen-player
-
 SCREEN=screen0
 
 TEST_CASES=(
@@ -22,7 +20,7 @@ cargo build --release
 for test_case in "${TEST_CASES[@]}"; do
     echo "--------------------------------"
     echo "test case: $test_case"
-    $PLAYER $test_case
+    kava $test_case
     echo "--------------------------------"
     sleep 1
 done
