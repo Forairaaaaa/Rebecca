@@ -7,6 +7,19 @@ use tokio::process::{Child, ChildStderr, ChildStdout, Command};
 pub struct FFmpeg {}
 
 impl FFmpeg {
+    pub async fn check_ffmpeg_installed() -> bool {
+        let output = Command::new("ffmpeg")
+            .arg("-version")
+            .output()
+            .await
+            .unwrap();
+        debug!(
+            "ffmpeg version:\n{}",
+            String::from_utf8_lossy(&output.stdout)
+        );
+        output.status.success()
+    }
+
     /// 构建基础的ffmpeg命令
     pub fn build_command() -> Command {
         Command::new("ffmpeg")

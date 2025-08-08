@@ -4,7 +4,7 @@ mod player;
 use clap::Parser;
 use cover_screen::SocketCoverScreen;
 use log::{debug, error};
-use player::{ColorBar, Downloader, GifPlayer, ImageRenderer, ResizeMode, VideoPlayer};
+use player::{ColorBar, Downloader, FFmpeg, GifPlayer, ImageRenderer, ResizeMode, VideoPlayer};
 use std::{error::Error, path::PathBuf};
 
 #[derive(Parser, Debug)]
@@ -44,7 +44,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     debug!("get args: {:#?}", args);
 
+    // Create screen
     let mut screen = SocketCoverScreen::new(&args.screen).await?;
+
+    // Check ffmpeg
+    if !FFmpeg::check_ffmpeg_installed().await {
+        error!("ffmpeg is not installed :(");
+        return Err("ffmpeg is not installed".into());
+    }
 
     // If resource is provided
     if let Some(mut resource) = args.resource {

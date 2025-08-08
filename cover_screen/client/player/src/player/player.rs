@@ -18,11 +18,9 @@ impl ColorBar {
         let height = cover_screen.height();
         let target_bpp = cover_screen.bpp();
 
-        // 使用ffmpeg生成SMPTE彩条，直接输出目标bpp格式
         let source = format!("testsrc=duration=1:size={}x{}:rate=1", width, height);
         let frame_data = FFmpeg::execute_test_source(&source, width, height, target_bpp).await?;
 
-        // 将数据复制到目标 frame buffer
         let frame_buffer = cover_screen.frame_buffer();
         frame_buffer[..frame_data.len()].copy_from_slice(&frame_data);
 
