@@ -2,6 +2,7 @@ mod cover_screen;
 mod player;
 
 use clap::Parser;
+use colored::Colorize;
 use cover_screen::SocketCoverScreen;
 use env_logger::Env;
 use log::{debug, error};
@@ -11,8 +12,8 @@ use std::{error::Error, path::PathBuf};
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Name of the cover screen, e.g. screen0 for /tmp/cover_screen/screen0.json
-    screen: String,
+    /// Name of the screen, e.g. screen0 for /tmp/cover_screen/screen0.json, if not provided, list all available screens
+    screen: Option<String>,
 
     /// Set if the target resource is a URL
     #[arg(short, long)]
@@ -56,16 +57,28 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     debug!("get args: {:#?}", args);
 
+    // If no screen provided
+    if args.screen.is_none() {
+        let screens = SocketCoverScreen::list_screens()?;
+        print!("🖥️ available screens: ");
+        for screen in screens {
+            print!("{} ", screen.green());
+        }
+        println!();
+        return Ok(());
+    }
+
     // Create screen
-    let mut screen = SocketCoverScreen::new(&args.screen).await.map_err(|e| {
-        error!("failed to create screen: {}", e);
-        e
-    })?;
+    let mut screen = SocketCoverScreen::new(&args.screen.unwrap())
+        .await
+        .map_err(|e| {
+            error!("failed to create screen: {}", e);
+            e
+        })?;
 
     // Check ffmpeg
     if !FFmpeg::check_ffmpeg_installed().await {
-        error!("ffmpeg is not installed :(");
-        return Err("ffmpeg is not installed".into());
+        return Err("ffmpeg is not installed :(".into());
     }
 
     // If resource is provided

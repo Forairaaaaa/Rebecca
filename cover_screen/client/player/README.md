@@ -14,18 +14,6 @@ sudo apt update
 sudo apt install ffmpeg
 ```
 
-## 📥 安装
-
-```bash
-cargo install --path .
-```
-
-## 🗑️ 卸载
-
-```bash
-cargo uninstall kava
-```
-
 ## 🎮 使用方法
 
 ### 基本语法
@@ -45,27 +33,32 @@ kava <screen_name> [选项] [资源路径]
 
 ### 🎯 使用示例
 
-1. **显示测试彩色条** 🌈
+1. **显示能用的屏幕** 🖥️
+```bash
+kava
+```
+
+2. **显示测试彩色条** 🌈
 ```bash
 kava screen0
 ```
 
-2. **播放本地图片** 🖼️
+3. **播放本地图片** 🖼️
 ```bash
 kava screen0 ~/image.png
 ```
 
-3. **播放GIF并循环** 🎬
+4. **播放GIF并循环** 🎬
 ```bash
 kava screen0 -r ~/animation.gif
 ```
 
-4. **从URL下载并播放图片** 🌐
+5. **从URL下载并播放图片** 🌐
 ```bash
 kava screen0 -u https://example.com/image.png
 ```
 
-5. **播放视频** 🎥
+6. **播放视频** 🎥
 ```bash
 kava screen0 --video ~/video.mp4
 ```
@@ -73,6 +66,18 @@ kava screen0 --video ~/video.mp4
 ### ❓ 查看帮助
 ```bash
 kava -h
+```
+
+## 📥 安装
+
+```bash
+cargo install --path .
+```
+
+## 🗑️ 卸载
+
+```bash
+cargo uninstall kava
 ```
 
 ---

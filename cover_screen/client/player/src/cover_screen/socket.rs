@@ -1,5 +1,5 @@
 use crate::cover_screen::CoverScreen;
-use log::{debug, info};
+use log::{debug, info, warn};
 use serde::Deserialize;
 use std::fs;
 use std::io;
@@ -32,6 +32,37 @@ struct PushFrameResponse {
 }
 
 impl SocketCoverScreen {
+    pub fn list_screens() -> io::Result<Vec<String>> {
+        let info_path = Path::new(SCREEN_INFO_DIR);
+
+        if !info_path.exists() {
+            return Ok(vec![]);
+        }
+
+        let mut screens = Vec::new();
+
+        for entry in fs::read_dir(info_path)? {
+            let entry = match entry {
+                Ok(e) => e,
+                Err(_) => {
+                    warn!("read dir entry {} failed", info_path.display());
+                    continue;
+                }
+            };
+
+            if let Some(file_name_os) = entry.file_name().to_str() {
+                let file_stem = Path::new(file_name_os)
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or(file_name_os);
+
+                screens.push(file_stem.to_string());
+            }
+        }
+
+        Ok(screens)
+    }
+
     pub async fn new(name: &str) -> io::Result<Self> {
         info!("create cover screen: {name}");
 
