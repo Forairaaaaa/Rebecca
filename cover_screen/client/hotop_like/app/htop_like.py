@@ -56,7 +56,7 @@ class HtopLike(AppBase):
             self.draw_process_infos(base_x, base_process_y)
 
             await self.render(self.image)
-            await asyncio.sleep(2)
+            await asyncio.sleep(1)
 
     def draw_mem_bar(self, x_base, y_base, bar_width):
         mem = psutil.virtual_memory()

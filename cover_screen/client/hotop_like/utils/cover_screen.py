@@ -1,29 +1,46 @@
 from .logger import logger
-from pathlib import Path
 from PIL import Image
 import numpy as np
-import json
 import zmq
 import zmq.asyncio
+import aiohttp
 
 
 _screens = []
 
 
-def _load_screen_infos(directory):
+async def _load_screen_infos(host="127.0.0.1", port=12580):
     global _screens
-    logger.info(f"load screen from {directory}")
-    dir_path = Path(directory)
-    for file_path in dir_path.iterdir():
-        if file_path.suffix == ".json":
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    _screens.append(data)
-            except Exception as e:
-                print(f"Failed to load {file_path.name}:", e)
+    logger.info(f"load screen from http://{host}:{port}/get-device/all")
+    url = f"http://{host}:{port}/get-device/all"
 
-    print(_screens)
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    devices = await response.json()
+                    for device in devices:
+                        screen_info = {
+                            "name": device["id"],  # 使用id作为name
+                            "frame_buffer_port": device["info"]["frame_buffer_port"],
+                            "bits_per_pixel": device["info"]["bits_per_pixel"],
+                            "screen_size": device["info"]["screen_size"],
+                            "description": device["info"]["description"],
+                            "device_type": device["info"]["device_type"],
+                        }
+                        _screens.append(screen_info)
+                else:
+                    logger.error(
+                        f"Failed to get devices, status code: {response.status}"
+                    )
+                    raise Exception(
+                        f"HTTP request failed with status {response.status}"
+                    )
+    except Exception as e:
+        logger.error(f"Failed to load screen infos from HTTP: {e}")
+        raise e
+
+    logger.info(f"Loaded {len(_screens)} screens: {[s['name'] for s in _screens]}")
 
 
 def _create_sockets():
@@ -48,12 +65,12 @@ def _create_sockets():
         screen["push"] = push
 
 
-def connect(info_dir="/tmp/cover_screen"):
+async def connect(host="127.0.0.1", port=12580):
     global _screens
     logger.info("connect cover screens")
     if _screens:
         stop()
-    _load_screen_infos(info_dir)
+    await _load_screen_infos(host, port)
     _create_sockets()
 
 

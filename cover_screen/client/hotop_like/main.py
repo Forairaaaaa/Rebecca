@@ -7,7 +7,10 @@ import argparse
 import asyncio
 
 
-async def main():
+async def main(port=12580):
+    # 连接到cover screen服务
+    await cover_screen.connect(port=port)
+
     app_map = {
         "screen0": HtopLike,
         # "screen1": Terminal,
@@ -28,6 +31,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--theme", type=str, default=None)
     parser.add_argument("--font", type=str, default=None)
+    parser.add_argument("--port", type=int, default=12580)
     args = parser.parse_args()
 
     if args.theme:
@@ -37,8 +41,7 @@ if __name__ == "__main__":
 
     try:
         logger.info("start cover screen client")
-        cover_screen.connect()
-        asyncio.run(main())
+        asyncio.run(main(args.port))
     except KeyboardInterrupt:
         pass
     except Exception as e:
