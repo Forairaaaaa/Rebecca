@@ -6,9 +6,8 @@ use log::{error, info};
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::net::TcpListener;
-use tokio::task;
+use tokio::{sync::Notify, task};
 
 async fn handle_request(
     req: Request<hyper::body::Incoming>,
@@ -50,7 +49,14 @@ async fn handle_request(
     }
 }
 
-pub fn start(port: u16, shutdown_signal: Arc<AtomicBool>) -> task::JoinHandle<()> {
+/// Start a http server to handle hal request
+/// # Arguments
+/// * `port` - The port to listen on
+/// * `device_infos` - A vector of available device infos
+/// * `shutdown_notify` - A notify clone for shutdown signal
+/// # Returns
+/// A `task::JoinHandle` that can be used to wait for the server to shutdown
+pub fn start_server(port: u16, shutdown_notify: Arc<Notify>) -> task::JoinHandle<()> {
     task::spawn(async move {
         let addr = SocketAddr::from(([127, 0, 0, 1], port));
         let listener = match TcpListener::bind(addr).await {
@@ -66,14 +72,13 @@ pub fn start(port: u16, shutdown_signal: Arc<AtomicBool>) -> task::JoinHandle<()
 
         loop {
             tokio::select! {
-                // 检查关闭信号
-                _ = tokio::time::sleep(tokio::time::Duration::from_millis(100)) => {
-                    if shutdown_signal.load(Ordering::Relaxed) {
-                        info!("server received shutdown signal");
-                        break;
-                    }
+                // Check shutdown signal
+                _ = shutdown_notify.notified() => {
+                    info!("server shutdown...");
+                    break;
                 }
-                // 接受新连接
+
+                // Accept new connection
                 result = listener.accept() => {
                     let (stream, _) = match result {
                         Ok(conn) => conn,
@@ -83,16 +88,15 @@ pub fn start(port: u16, shutdown_signal: Arc<AtomicBool>) -> task::JoinHandle<()
                         }
                     };
 
-                    let shutdown_clone = shutdown_signal.clone();
                     tokio::task::spawn(async move {
                         let io = TokioIo::new(stream);
                         if let Err(err) = auto::Builder::new(hyper_util::rt::TokioExecutor::new())
-                            .serve_connection_with_upgrades(io, service_fn(handle_request))
-                            .await
+                            .serve_connection_with_upgrades(io, service_fn(move |req| {
+                                handle_request(req)
+                            }))
+                        .await
                         {
-                            if !shutdown_clone.load(Ordering::Relaxed) {
-                                error!("connection error: {}", err);
-                            }
+                            error!("connection error: {}", err);
                         }
                     });
                 }

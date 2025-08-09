@@ -1,13 +1,12 @@
+mod devices;
+mod server;
+
 use clap::Parser;
+use devices::{DeviceInfo, start_screen_service};
 use env_logger::Env;
 use log::{error, info};
-use std::sync::{
-    Arc,
-    atomic::{AtomicBool, Ordering},
-};
-use tokio::signal;
-
-mod server;
+use std::sync::Arc;
+use tokio::{signal, sync::Notify, task::JoinHandle};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -22,7 +21,7 @@ struct Args {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     // Init logger
@@ -33,16 +32,22 @@ async fn main() {
     }))
     .init();
 
-    // 创建关闭信号
-    let shutdown_signal = Arc::new(AtomicBool::new(false));
+    // Create shutdown notify
+    let shutdown_notify = Arc::new(Notify::new());
 
-    // 启动HTTP服务器
-    let server_handle = server::start(args.port, shutdown_signal.clone());
+    let mut tasks: Vec<JoinHandle<()>> = Vec::new();
+    let mut device_infos: Vec<DeviceInfo> = Vec::new();
 
-    // 这里可以启动其他线程
-    // let other_handle = start_other_service();
+    // Start screen service
+    match start_screen_service(&mut device_infos, shutdown_notify.clone()).await {
+        Ok(screen_handle) => tasks.push(screen_handle),
+        Err(e) => error!("failed to start screen service: {}", e),
+    }
 
-    // 等待信号
+    // Start HTTP server
+    tasks.push(server::start_server(args.port, shutdown_notify.clone()));
+
+    // Wait for signal
     let mut sigterm = signal::unix::signal(signal::unix::SignalKind::terminate()).unwrap();
     tokio::select! {
         _ = signal::ctrl_c() => {
@@ -53,16 +58,14 @@ async fn main() {
         }
     }
 
-    // 设置关闭信号
-    shutdown_signal.store(true, Ordering::Relaxed);
+    // Notify shutdown
+    shutdown_notify.notify_waiters();
 
-    // 等待服务器task结束
-    if let Err(e) = server_handle.await {
-        error!("server task join failed: {:?}", e);
+    // Wait for all tasks to finish
+    for task in tasks {
+        task.await?;
     }
 
-    // 等待其他线程结束
-    // if let Err(e) = other_handle.join() {
-    //     error!("other thread join failed: {:?}", e);
-    // }
+    info!("shutdown complete.");
+    Ok(())
 }
