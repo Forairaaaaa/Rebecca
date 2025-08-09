@@ -44,7 +44,7 @@ async fn handle_request(
             return Ok(Response::builder()
                 .status(StatusCode::OK)
                 .header("content-type", "application/json")
-                .body(device_info.info)
+                .body(serde_json::to_string_pretty(&device_info.info).unwrap())
                 .unwrap());
         }
         _ => Ok(Response::builder()

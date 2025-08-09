@@ -92,7 +92,7 @@ impl ScreenSocket {
 
         DeviceInfo {
             id: self.id.clone(),
-            info: serde_json::to_string_pretty(&screen_socket_info).unwrap(),
+            info: json!(screen_socket_info),
         }
     }
 }
