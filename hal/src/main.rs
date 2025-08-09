@@ -28,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(Env::default().default_filter_or(if args.verbose {
         "debug"
     } else {
-        "warn"
+        "info"
     }))
     .init();
 
