@@ -4,13 +4,14 @@ use regex::Regex;
 use serde::Serialize;
 use serde_json::json;
 use std::io;
+use std::sync::Arc;
 use zeromq::{Socket, SocketRecv, SocketSend};
 
 /// Screen socket
 /// 监听一个 screen zmq rep socket 把接收数据推送到屏幕
 pub struct ScreenSocket {
     pub id: String,
-    screen: Box<dyn Screen>,
+    screen: Arc<dyn Screen + Send + Sync>,
     frame_buffer_port: u16,
     frame_buffer_socket: zeromq::RepSocket,
 }
@@ -25,7 +26,7 @@ struct ScreenSocketInfo {
 }
 
 impl ScreenSocket {
-    pub async fn new(screen: Box<dyn Screen>, id: String) -> io::Result<Self> {
+    pub async fn new(screen: Box<dyn Screen + Send + Sync>, id: String) -> io::Result<Self> {
         // Create frame buffer zmq socket
         let mut frame_buffer_socket = zeromq::RepSocket::new();
         let ep = frame_buffer_socket
@@ -47,7 +48,7 @@ impl ScreenSocket {
 
         Ok(Self {
             id,
-            screen,
+            screen: Arc::from(screen),
             frame_buffer_port,
             frame_buffer_socket,
         })

@@ -1,7 +1,7 @@
 use std::io;
 
 /// Screen trait
-pub trait Screen: Send {
+pub trait Screen {
     fn bpp(&self) -> u32;
     fn size(&self) -> (u32, u32);
     fn device_type(&self) -> String;
