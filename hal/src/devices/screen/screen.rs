@@ -1,8 +1,8 @@
 use crate::devices::{
-    DeviceInfo,
+    DEVICE_MANAGER,
     screen::{FrameBufferScreen, ScreenSocket},
 };
-use log::info;
+use log::{info, warn};
 use std::io;
 use std::sync::Arc;
 use tokio::{sync::Notify, task};
@@ -14,7 +14,6 @@ use tokio::{sync::Notify, task};
 /// # Returns
 /// A `task::JoinHandle` that can be used to wait for the screen service to shutdown
 pub async fn start_screen_service(
-    device_infos: &mut Vec<DeviceInfo>,
     shutdown_notify: Arc<Notify>,
 ) -> io::Result<task::JoinHandle<()>> {
     // Create screens
@@ -24,7 +23,18 @@ pub async fn start_screen_service(
     // Create screen sockets
     for (i, screen) in screens.into_iter().enumerate() {
         let screen_socket = ScreenSocket::new(Box::new(screen), format!("screen{}", i)).await?;
-        device_infos.push(screen_socket.get_device_info());
+
+        // Add device to manager
+        match DEVICE_MANAGER
+            .add_device(screen_socket.get_device_info())
+            .await
+        {
+            Ok(_) => {}
+            Err(e) => {
+                warn!("add device to manager failed: {}", e);
+            }
+        }
+
         screen_sockets.push(screen_socket);
     }
 

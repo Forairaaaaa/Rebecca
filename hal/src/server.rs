@@ -1,8 +1,9 @@
+use crate::devices::DEVICE_MANAGER;
 use hyper::service::service_fn;
 use hyper::{Method, Request, Response, StatusCode};
 use hyper_util::rt::TokioIo;
 use hyper_util::server::conn::auto;
-use log::{error, info};
+use log::{debug, error, info};
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -20,27 +21,31 @@ async fn handle_request(
             // 提取设备ID
             let device_id = &path[12..]; // 跳过 "/get-device/" 前缀
 
-            if device_id.is_empty() {
+            // List all devices
+            if device_id.is_empty() || device_id == "all" {
+                debug!("get all device infos");
+                let devices = DEVICE_MANAGER.get_all_devices().await;
+                let response_body = serde_json::to_string_pretty(&devices).unwrap();
                 return Ok(Response::builder()
-                    .status(StatusCode::BAD_REQUEST)
-                    .body("empty device id".to_string())
+                    .status(StatusCode::OK)
+                    .header("content-type", "application/json")
+                    .body(response_body)
                     .unwrap());
             }
 
-            info!("get device info: {}", device_id);
+            debug!("get device info: {}", device_id);
+            let Some(device_info) = DEVICE_MANAGER.get_device(device_id).await else {
+                return Ok(Response::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .body("device not found".to_string())
+                    .unwrap());
+            };
 
-            // TODO
-            let response_body = serde_json::json!({
-                "device_id": device_id,
-                "status": "online",
-                "message": format!("👍👍 {}", device_id)
-            });
-
-            Ok(Response::builder()
+            return Ok(Response::builder()
                 .status(StatusCode::OK)
                 .header("content-type", "application/json")
-                .body(response_body.to_string())
-                .unwrap())
+                .body(device_info.info)
+                .unwrap());
         }
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)

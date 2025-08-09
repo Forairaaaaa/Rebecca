@@ -2,7 +2,7 @@ mod devices;
 mod server;
 
 use clap::Parser;
-use devices::{DeviceInfo, start_screen_service};
+use devices::start_screen_service;
 use env_logger::Env;
 use log::{error, info};
 use std::sync::Arc;
@@ -36,10 +36,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let shutdown_notify = Arc::new(Notify::new());
 
     let mut tasks: Vec<JoinHandle<()>> = Vec::new();
-    let mut device_infos: Vec<DeviceInfo> = Vec::new();
 
     // Start screen service
-    match start_screen_service(&mut device_infos, shutdown_notify.clone()).await {
+    match start_screen_service(shutdown_notify.clone()).await {
         Ok(screen_handle) => tasks.push(screen_handle),
         Err(e) => error!("failed to start screen service: {}", e),
     }
