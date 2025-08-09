@@ -1,5 +1,5 @@
-use crate::cover_screen::CoverScreen;
 use crate::player::ResizeMode;
+use crate::screen::CoverScreen;
 use log::debug;
 use std::{error::Error, path::Path, process::Stdio};
 use tokio::process::{Child, ChildStderr, ChildStdout, Command};

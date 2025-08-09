@@ -22,14 +22,14 @@ kava <screen_name> [选项] [资源路径]
 ```
 
 ### 📝 参数说明
-- `screen_name`: 屏幕名称喵～例如 `screen0`（对应配置文件 `/tmp/cover_screen/screen0.json`）
+- `screen_name`: 屏幕名称喵～例如 `screen0`
 - `resource`: 资源路径（可选），如果不提供的话会显示漂亮的彩色条哦
 
 ### ⚙️ 选项
 - `-u, --url`: 指定资源为URL链接
 - `-r, --repeat`: 循环播放（可以一直看下去呢～）
-- `--video`: 指定资源为视频文件
-- `--resize-mode`: 适应模式（默认填充哦）
+- `    --video`: 指定资源为视频文件
+- `    --resize-mode`: 适应模式（默认填充哦）
 
 ### 🎯 使用示例
 

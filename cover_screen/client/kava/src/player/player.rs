@@ -1,4 +1,4 @@
-use crate::cover_screen::CoverScreen;
+use crate::screen::CoverScreen;
 use crate::player::{FFmpeg, ResizeMode};
 use log::{debug, info};
 use std::{error::Error, path::Path};

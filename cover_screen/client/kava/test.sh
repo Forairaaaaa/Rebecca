@@ -2,6 +2,10 @@
 
 SCREEN=screen0
 
+if [ -n "$1" ]; then
+    SCREEN=$1
+fi
+
 TEST_CASES=(
     "$SCREEN"
     "$SCREEN -u https://c-ssl.dtstatic.com/uploads/item/201910/01/20191001164555_ldwlb.thumb.1000_0.png"
@@ -10,10 +14,6 @@ TEST_CASES=(
     "$SCREEN -u https://bkimg.cdn.bcebos.com/pic/faedab64034f78f0220d8e0c79310a55b2191cce"
     "$SCREEN -u https://img.soogif.com/4fpkeRjUIK7X0Fc5GdMW4NtqvAI0Cnya.gif"
 )
-
-if [ -n "$1" ]; then
-    SCREEN=$1
-fi
 
 cargo build --release
 

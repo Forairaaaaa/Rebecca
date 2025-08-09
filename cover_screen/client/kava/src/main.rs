@@ -1,18 +1,18 @@
-mod cover_screen;
 mod player;
+mod screen;
 
 use clap::Parser;
 use colored::Colorize;
-use cover_screen::SocketCoverScreen;
 use env_logger::Env;
 use log::{debug, error};
 use player::{ColorBar, Downloader, FFmpeg, GifPlayer, ImageRenderer, ResizeMode, VideoPlayer};
+use screen::SocketCoverScreen;
 use std::{error::Error, path::PathBuf};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Name of the screen, e.g. screen0 for /tmp/cover_screen/screen0.json, if not provided, list all available screens
+    /// Name of the screen, e.g. screen0, if not provided, list all available screens
     screen: Option<String>,
 
     /// Set if the target resource is a URL
@@ -34,6 +34,10 @@ struct Args {
     /// Verbose mode
     #[arg(short, long, default_value_t = false)]
     verbose: bool,
+
+    /// Rebecca-HAL server port
+    #[arg(short, long, default_value_t = 12580)]
+    port: u16,
 
     /// Target resource path, e.g. ~/wtf.png, if not provided, draw color bar
     #[arg(default_value = None)]
@@ -59,7 +63,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // If no screen provided
     if args.screen.is_none() {
-        let screens = SocketCoverScreen::list_screens()?;
+        let screens = SocketCoverScreen::list_screens(args.port).await?;
         print!("🖥️ available screens: ");
         for screen in screens {
             print!("{} ", screen.green());
@@ -69,7 +73,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // Create screen
-    let mut screen = SocketCoverScreen::new(&args.screen.unwrap())
+    let mut screen = SocketCoverScreen::new(&args.screen.unwrap(), args.port)
         .await
         .map_err(|e| {
             error!("failed to create screen: {}", e);
