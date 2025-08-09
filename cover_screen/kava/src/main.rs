@@ -1,0 +1,133 @@
+mod player;
+mod screen;
+
+use clap::Parser;
+use colored::Colorize;
+use env_logger::Env;
+use log::{debug, error};
+use player::{ColorBar, Downloader, FFmpeg, GifPlayer, ImageRenderer, ResizeMode, VideoPlayer};
+use screen::SocketCoverScreen;
+use std::{error::Error, path::PathBuf};
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Name of the screen, e.g. screen0, if not provided, list all available screens
+    screen: Option<String>,
+
+    /// Set if the target resource is a URL
+    #[arg(short, long)]
+    url: bool,
+
+    /// Render resize mode
+    #[arg(long, value_enum, default_value_t = ResizeMode::Fill)]
+    resize_mode: ResizeMode,
+
+    /// Play in loop
+    #[arg(short, long, default_value_t = false)]
+    repeat: bool,
+
+    /// Is target resource a video
+    #[arg(long, default_value_t = false)]
+    video: bool,
+
+    /// Verbose mode
+    #[arg(short, long, default_value_t = false)]
+    verbose: bool,
+
+    /// Rebecca-HAL server port
+    #[arg(short, long, default_value_t = 12580)]
+    port: u16,
+
+    /// Target resource path, e.g. ~/wtf.png, if not provided, draw color bar
+    #[arg(default_value = None)]
+    resource: Option<PathBuf>,
+}
+
+const IMAGE_EXTS: [&str; 6] = ["jpg", "jpeg", "png", "webp", "bmp", "tiff"];
+const GIF_EXT: &str = "gif";
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    let args = Args::parse();
+
+    // Init logger
+    env_logger::Builder::from_env(Env::default().default_filter_or(if args.verbose {
+        "debug"
+    } else {
+        "warn"
+    }))
+    .init();
+
+    debug!("get args: {:#?}", args);
+
+    // If no screen provided
+    if args.screen.is_none() {
+        let screens = SocketCoverScreen::list_screens(args.port).await?;
+        print!("🖥️ available screens: ");
+        for screen in screens {
+            print!("{} ", screen.green());
+        }
+        println!();
+        return Ok(());
+    }
+
+    // Create screen
+    let mut screen = SocketCoverScreen::new(&args.screen.unwrap(), args.port)
+        .await
+        .map_err(|e| {
+            error!("failed to create screen: {}", e);
+            e
+        })?;
+
+    // Check ffmpeg
+    if !FFmpeg::check_ffmpeg_installed().await {
+        return Err("ffmpeg is not installed :(".into());
+    }
+
+    // If resource is provided
+    if let Some(mut resource) = args.resource {
+        // If target is video
+        if args.video {
+            VideoPlayer::from_target(&mut screen, resource, args.resize_mode, args.repeat).await?;
+        }
+        // If target is image
+        else {
+            let resource_ext: String;
+
+            if args.url {
+                let (path, ext) = Downloader::from_url(resource.to_str().unwrap()).await?;
+                resource = path;
+                resource_ext = ext;
+            } else {
+                resource_ext = resource
+                    .extension()
+                    .and_then(|ext| ext.to_str())
+                    .unwrap_or_default()
+                    .to_string();
+            }
+
+            // Map renderer
+            match resource_ext.as_str() {
+                ext if IMAGE_EXTS.contains(&ext) => {
+                    ImageRenderer::from_file(&mut screen, resource, args.resize_mode).await?;
+                }
+                ext if ext == GIF_EXT => {
+                    GifPlayer::from_file(&mut screen, resource, args.resize_mode, args.repeat)
+                        .await?;
+                }
+                _ => {
+                    error!("unsupported extension: {}", resource.display());
+                }
+            }
+
+            Downloader::cleanup()?;
+        }
+    }
+    // If not, draw color bar
+    else {
+        ColorBar::draw(&mut screen).await?;
+    }
+
+    Ok(())
+}
