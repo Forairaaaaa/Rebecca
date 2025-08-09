@@ -17,21 +17,21 @@
 namespace cover_screen {
 
 struct ScreenInfo_t {
-    std::string name;
-    std::string created_at;
+    std::string id;
+    std::string description;
+    std::string device_type;
 
     int width = 0;
     int height = 0;
     int bits_per_pixel = 0;
 
     int frame_buffer_port = -1;
-    int command_port = -1;
 
     std::unique_ptr<zmq::socket_t> socket;
     bool pushFrame(uint8_t* data, size_t size);
 };
 
-void connect(std::string infoDir = "/tmp/cover_screen");
+void connect(const std::string& apiUrl = "http://127.0.0.1:12580");
 const std::vector<ScreenInfo_t>& getScreens();
 bool exists(const std::string& screenName);
 const ScreenInfo_t& getScreen(const std::string& screenName);

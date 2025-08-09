@@ -16,7 +16,6 @@
 #include <stress/lv_demo_stress.h>
 #include <thread>
 #include <signal.h>
-#include <atomic>
 
 bool stop_requested = false;
 
