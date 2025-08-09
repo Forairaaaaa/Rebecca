@@ -2,7 +2,7 @@ mod devices;
 mod server;
 
 use clap::Parser;
-use devices::start_screen_service;
+use devices::{start_imu_service, start_screen_service};
 use env_logger::Env;
 use log::{error, info};
 use std::sync::Arc;
@@ -32,15 +32,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }))
     .init();
 
-    // Create shutdown notify
+    // Create shutdown notify and tasks
     let shutdown_notify = Arc::new(Notify::new());
-
     let mut tasks: Vec<JoinHandle<()>> = Vec::new();
 
     // Start screen service
     match start_screen_service(shutdown_notify.clone()).await {
         Ok(screen_handle) => tasks.push(screen_handle),
         Err(e) => error!("failed to start screen service: {}", e),
+    }
+
+    // Start IMU service
+    match start_imu_service(shutdown_notify.clone()).await {
+        Ok(imu_handle) => tasks.push(imu_handle),
+        Err(e) => error!("failed to start imu service: {}", e),
     }
 
     // Start HTTP server
