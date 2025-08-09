@@ -1,28 +1,62 @@
 const logger = require("./logger");
-const path = require("path");
 const zmq = require("zeromq");
-const fs = require("fs");
+const http = require("http");
 
 let _screens = [];
+const API_PORT = 12580;
 
-function _loadScreenInfos(dir) {
-  logger.info(`load screen from ${dir}`);
-
-  const files = fs.readdirSync(dir);
-  for (const file of files) {
-    const fullPath = path.join(dir, file);
-    if (path.extname(file) === ".json") {
-      try {
-        const data = fs.readFileSync(fullPath, "utf-8");
-        const json = JSON.parse(data);
-        _screens.push(json);
-      } catch (err) {
-        console.error(`Failed to load ${file}:`, err);
+function _httpRequest(hostname, port, path) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname,
+      port,
+      path,
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
       }
-    }
-  }
+    };
 
-  console.log(_screens);
+    const req = http.request(options, (res) => {
+      let data = '';
+      
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          resolve(json);
+        } catch (err) {
+          reject(new Error(`Failed to parse JSON: ${err.message}`));
+        }
+      });
+    });
+
+    req.on('error', (err) => {
+      reject(err);
+    });
+
+    req.end();
+  });
+}
+
+async function _loadScreenInfos() {
+  logger.info(`load screen info from HTTP API`);
+  
+  try {
+    const devices = await _httpRequest('127.0.0.1', API_PORT, '/get-device/all');
+    _screens = devices.map(device => ({
+      id: device.id,
+      ...device.info
+    }));
+    
+    console.log(_screens);
+  } catch (err) {
+    console.error('Failed to load screen info from API:', err);
+    throw err;
+  }
 }
 
 async function _createSockets() {
@@ -42,12 +76,12 @@ async function _createSockets() {
   }
 }
 
-async function connect(fbTempDir = "/tmp/cover_screen") {
+async function connect() {
   logger.info("connect cover screens");
   if (_screens.length > 0) {
-    await close();
+    await stop();
   }
-  _loadScreenInfos(fbTempDir);
+  await _loadScreenInfos();
   await _createSockets();
 }
 
