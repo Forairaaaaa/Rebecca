@@ -1,4 +1,4 @@
-use crate::devices::{DeviceInfo, screen::Screen};
+use crate::devices::screen::Screen;
 use log::error;
 use regex::Regex;
 use serde::Serialize;
@@ -80,7 +80,7 @@ impl ScreenSocket {
         }
     }
 
-    pub fn get_device_info(&self) -> DeviceInfo {
+    pub fn get_device_info(&self) -> String {
         let screen_socket_info = ScreenSocketInfo {
             screen_size: self.screen.size(),
             bits_per_pixel: self.screen.bpp(),
@@ -91,9 +91,6 @@ impl ScreenSocket {
                     .to_string(),
         };
 
-        DeviceInfo {
-            id: self.id.clone(),
-            info: json!(screen_socket_info),
-        }
+        serde_json::to_string_pretty(&screen_socket_info).unwrap_or("wtf?🤡".to_string())
     }
 }

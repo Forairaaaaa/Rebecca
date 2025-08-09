@@ -1,9 +1,8 @@
-use crate::devices::{DeviceInfo, imu::Imu};
+use crate::devices::imu::Imu;
 use log::{debug, error, warn};
 use prost::Message;
 use regex::Regex;
 use serde::Serialize;
-use serde_json::json;
 use std::io;
 use std::sync::{
     Arc,
@@ -29,7 +28,7 @@ pub struct ImuDataProto {
 }
 
 pub struct ImuSocket {
-    id: String,
+    pub id: String,
     imu: Arc<dyn Imu + Send + Sync>,
     imu_data_port: u16,
     imu_data_socket: Arc<tokio::sync::Mutex<zeromq::PubSocket>>,
@@ -192,17 +191,14 @@ impl ImuSocket {
         })
     }
 
-    pub fn get_device_info(&self) -> DeviceInfo {
+    pub fn get_device_info(&self) -> String {
         let imu_socket_info = ImuSocketInfo {
             imu_data_port: self.imu_data_port,
             device_type: self.imu.name(),
             description: "Subscribe IMU data from <imu_data_port> via ZMQ SUB socket. Data is published in protobuf format at 30Hz.".to_string(),
         };
 
-        DeviceInfo {
-            id: self.id.clone(),
-            info: json!(imu_socket_info),
-        }
+        serde_json::to_string_pretty(&imu_socket_info).unwrap_or("wtf?🤡".to_string())
     }
 
     pub fn is_running(&self) -> bool {

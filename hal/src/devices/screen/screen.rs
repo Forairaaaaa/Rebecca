@@ -1,7 +1,8 @@
 use crate::devices::{
-    DEVICE_MANAGER,
+    API_REGISTER, ApiRoute,
     screen::{FrameBufferScreen, ScreenSocket},
 };
+use hyper::{Method, Response};
 use log::{info, warn};
 use std::io;
 use std::sync::Arc;
@@ -23,15 +24,26 @@ pub async fn start_screen_service(
     // Create screen sockets
     for (i, screen) in screens.into_iter().enumerate() {
         let screen_socket = ScreenSocket::new(Box::new(screen), format!("screen{}", i)).await?;
+        let screen_info = screen_socket.get_device_info();
 
-        // Add device to manager
-        match DEVICE_MANAGER
-            .add_device(screen_socket.get_device_info())
+        // Register get info api
+        match API_REGISTER
+            .add_api(
+                ApiRoute {
+                    path: format!("/{}/info", screen_socket.id),
+                    method: Method::GET,
+                    description: "Get device info".to_string(),
+                },
+                Box::new(move |_request| {
+                    let screen_info = screen_info.clone();
+                    Box::pin(async move { Response::new(screen_info) })
+                }),
+            )
             .await
         {
             Ok(_) => {}
             Err(e) => {
-                warn!("add device to manager failed: {}", e);
+                warn!("add api failed: {}", e);
             }
         }
 
