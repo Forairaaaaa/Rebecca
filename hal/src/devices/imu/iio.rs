@@ -23,6 +23,8 @@ pub struct ImuFromIio {
     gyro_scale: f32,
     mag_scale: f32,
     temp_scale: f32,
+    // Sample rate for the IMU device
+    sample_rate: u32,
 }
 
 impl ImuFromIio {
@@ -93,6 +95,7 @@ impl ImuFromIio {
                 gyro_scale: 1.0,
                 mag_scale: 1.0,
                 temp_scale: 1.0,
+                sample_rate: 30,
             };
 
             // Scan for available channels and scales
@@ -160,6 +163,18 @@ impl ImuFromIio {
                     self.temp_scale = self.read_scale("in_temp_scale").unwrap_or(1.0);
                 }
 
+                // Sample rate files
+                "sampling_frequency" => {
+                    if let Some(rate) = self.read_sample_rate(&entry.path()) {
+                        self.sample_rate = rate;
+                    }
+                }
+                "in_accel_sampling_frequency" => {
+                    if let Some(rate) = self.read_sample_rate(&entry.path()) {
+                        self.sample_rate = rate;
+                    }
+                }
+
                 _ => {}
             }
         }
@@ -171,6 +186,10 @@ impl ImuFromIio {
     fn read_scale(&self, scale_file: &str) -> Option<f32> {
         let scale_path = self.device_path.join(scale_file);
         fs::read_to_string(scale_path).ok()?.trim().parse().ok()
+    }
+
+    fn read_sample_rate(&self, path: &PathBuf) -> Option<u32> {
+        fs::read_to_string(path).ok()?.trim().parse().ok()
     }
 
     fn read_raw_value(&self, path: &Option<PathBuf>) -> f32 {
@@ -221,5 +240,9 @@ impl Imu for ImuFromIio {
     fn deinit(&self) -> io::Result<()> {
         debug!("deinit iio imu device: {}", self.name);
         Ok(())
+    }
+
+    fn sample_rate(&self) -> u32 {
+        self.sample_rate
     }
 }

@@ -39,9 +39,10 @@ pub struct ImuSocket {
 
 #[derive(Serialize, Debug)]
 struct ImuSocketInfo {
-    imu_data_port: u16,
     device_type: String,
     status: String,
+    sample_rate: u32,
+    imu_data_port: u16,
     description: String,
 }
 
@@ -141,9 +142,10 @@ impl ImuSocket {
         let id = self.id.clone();
 
         task::spawn(async move {
-            let mut interval = time::interval(Duration::from_millis(33)); // ~30Hz (1000ms/30 ≈ 33ms)
+            let sample_rate = imu.sample_rate();
+            let mut interval = time::interval(Duration::from_millis(1000 / sample_rate as u64));
 
-            debug!("imu update task started for: {}", id);
+            debug!("imu update task started for: {} in {}Hz", id, sample_rate);
 
             loop {
                 tokio::select! {
@@ -158,7 +160,7 @@ impl ImuSocket {
 
                         // Read IMU data
                         let imu_data = imu.imu_data();
-                        // debug!("{} get imu data: {:#?}", id, imu_data);
+                        debug!("{} get imu data: {:#?}", id, imu_data);
 
                         // Convert to protobuf message
                         let proto_msg = ImuDataProto {
@@ -194,10 +196,11 @@ impl ImuSocket {
 
     pub fn get_device_info(&self) -> String {
         let imu_socket_info = ImuSocketInfo {
-            imu_data_port: self.imu_data_port,
             device_type: self.imu.name(),
             status: if self.is_running() { "running" } else { "idle" }.to_string(),
-            description: "Subscribe IMU data from <imu_data_port> via ZMQ SUB socket. When running, data is published in protobuf format at 30Hz.".to_string(),
+            sample_rate: self.imu.sample_rate(),
+            imu_data_port: self.imu_data_port,
+            description: "Subscribe IMU data from <imu_data_port> via ZMQ SUB socket. When running, data is published in protobuf format".to_string(),
         };
 
         serde_json::to_string_pretty(&imu_socket_info).unwrap_or("wtf?🤡".to_string())

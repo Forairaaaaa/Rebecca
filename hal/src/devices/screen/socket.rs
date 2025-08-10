@@ -87,7 +87,7 @@ impl ScreenSocket {
             frame_buffer_port: self.frame_buffer_port,
             device_type: self.screen.device_type(),
             description:
-                "Render a frame by sending a raw buffer to <frame_buffer_port> via ZMQ REP socket."
+                "Render a frame by sending a raw buffer to <frame_buffer_port> via ZMQ REP socket"
                     .to_string(),
         };
 

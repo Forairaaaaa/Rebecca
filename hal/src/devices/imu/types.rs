@@ -13,4 +13,5 @@ pub trait Imu {
     fn imu_data(&self) -> ImuData;
     fn init(&self) -> io::Result<()>;
     fn deinit(&self) -> io::Result<()>;
+    fn sample_rate(&self) -> u32;
 }
