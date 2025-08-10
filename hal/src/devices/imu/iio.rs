@@ -23,6 +23,10 @@ pub struct ImuFromIio {
     gyro_scale: f32,
     mag_scale: f32,
     temp_scale: f32,
+    // Optional offset for temperature when using raw channel
+    temp_offset: f32,
+    // Whether temperature path points to an already-processed input value
+    temp_is_input: bool,
     // Sample rate for the IMU device
     sample_rate: u32,
 }
@@ -95,6 +99,8 @@ impl ImuFromIio {
                 gyro_scale: 1.0,
                 mag_scale: 1.0,
                 temp_scale: 1.0,
+                temp_offset: 0.0,
+                temp_is_input: false,
                 sample_rate: 30,
             };
 
@@ -161,6 +167,18 @@ impl ImuFromIio {
                 "in_temp_raw" => {
                     self.temp_path = Some(entry.path());
                     self.temp_scale = self.read_scale("in_temp_scale").unwrap_or(1.0);
+                    self.temp_offset = self.read_offset("in_temp_offset").unwrap_or(0.0);
+                    self.temp_is_input = false;
+                }
+                "in_temp_input" => {
+                    self.temp_path = Some(entry.path());
+                    self.temp_is_input = true;
+                }
+                "in_temp_scale" => {
+                    self.temp_scale = self.read_scale("in_temp_scale").unwrap_or(1.0);
+                }
+                "in_temp_offset" => {
+                    self.temp_offset = self.read_offset("in_temp_offset").unwrap_or(0.0);
                 }
 
                 // Sample rate files
@@ -188,6 +206,11 @@ impl ImuFromIio {
         fs::read_to_string(scale_path).ok()?.trim().parse().ok()
     }
 
+    fn read_offset(&self, offset_file: &str) -> Option<f32> {
+        let offset_path = self.device_path.join(offset_file);
+        fs::read_to_string(offset_path).ok()?.trim().parse().ok()
+    }
+
     fn read_sample_rate(&self, path: &PathBuf) -> Option<u32> {
         fs::read_to_string(path).ok()?.trim().parse().ok()
     }
@@ -198,6 +221,27 @@ impl ImuFromIio {
                 .ok()
                 .and_then(|s| s.trim().parse::<i32>().ok())
                 .unwrap_or(0) as f32,
+            None => 0.0,
+        }
+    }
+
+    fn read_value_as_f32(&self, path: &Option<PathBuf>) -> f32 {
+        match path {
+            Some(p) => match fs::read_to_string(p) {
+                Ok(content) => {
+                    let trimmed = content.trim();
+                    if let Ok(v) = trimmed.parse::<f32>() {
+                        v
+                    } else if let Ok(v) = trimmed.parse::<i64>() {
+                        v as f32
+                    } else if let Ok(v) = trimmed.parse::<i32>() {
+                        v as f32
+                    } else {
+                        0.0
+                    }
+                }
+                Err(_) => 0.0,
+            },
             None => 0.0,
         }
     }
@@ -222,7 +266,13 @@ impl Imu for ImuFromIio {
         let mag_y = self.read_raw_value(&self.mag_y_path) * self.mag_scale;
         let mag_z = self.read_raw_value(&self.mag_z_path) * self.mag_scale;
 
-        let temp = self.read_raw_value(&self.temp_path) * self.temp_scale;
+        let temp = if self.temp_is_input {
+            // Already processed by driver; use as-is
+            self.read_value_as_f32(&self.temp_path)
+        } else {
+            // Apply offset and scale for raw channel
+            (self.read_raw_value(&self.temp_path) + self.temp_offset) * self.temp_scale
+        };
 
         ImuData {
             accel: [accel_x, accel_y, accel_z],

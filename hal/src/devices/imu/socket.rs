@@ -43,7 +43,7 @@ message ImuDataProto {
   repeated float accel = 2;   // ax, ay, az
   repeated float gyro  = 3;   // gx, gy, gz
   repeated float mag   = 4;   // mx, my, mz
-  float         temp   = 5;   // Celsius
+  float         temp   = 5;   // milli-degree Celsius
   repeated float quaternion = 6; // quaternion (4 floats)
   repeated float euler_angles = 7; // yaw, pitch, roll (radians)
 }
