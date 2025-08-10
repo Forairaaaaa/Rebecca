@@ -58,22 +58,28 @@ impl ScreenSocket {
     pub async fn listen(&mut self) {
         match self.frame_buffer_socket.recv().await {
             Ok(msg) => {
-                let data: &[u8] = msg.get(0).unwrap();
                 let response: String;
 
-                match self.screen.push_frame_buffer(data) {
-                    Ok(()) => {
-                        response = json!({"status": 0, "msg": "ok👌"}).to_string();
+                if let Some(data) = msg.get(0) {
+                    match self.screen.push_frame_buffer(data) {
+                        Ok(()) => {
+                            response = json!({"status": 0, "msg": "ok👌"}).to_string();
+                        }
+                        Err(e) => {
+                            response = json!({"status": 1, "msg": e.to_string()}).to_string();
+                        }
                     }
-                    Err(e) => {
-                        response = json!({"status": 1, "msg": e.to_string()}).to_string();
-                    }
-                }
+                } else {
+                    error!("ZMQ recv error: {:#?}", msg);
+                    response = json!({"status": 1, "msg": "get msg failed"}).to_string();
+                };
 
                 self.frame_buffer_socket
                     .send(response.into())
                     .await
-                    .unwrap();
+                    .unwrap_or_else(|e| {
+                        error!("ZMQ send error: {:?}", e);
+                    });
             }
             Err(e) => {
                 error!("ZMQ recv error: {:?}", e);

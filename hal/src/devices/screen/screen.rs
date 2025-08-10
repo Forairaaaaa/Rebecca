@@ -4,7 +4,7 @@ use crate::devices::{
     screen::{FrameBufferScreen, ScreenSocket},
 };
 use hyper::{Method, Response};
-use log::{info, warn};
+use log::{error, info, warn};
 use std::io;
 use std::sync::Arc;
 use tokio::{sync::Notify, task};
@@ -79,7 +79,9 @@ pub async fn start_screen_service(
         }
 
         for worker in workers {
-            worker.await.unwrap();
+            worker.await.unwrap_or_else(|e| {
+                error!("await screen worker error: {}", e);
+            });
         }
 
         info!("screen service shutdown complete");

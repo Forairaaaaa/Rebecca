@@ -45,6 +45,7 @@ Wants=network.target
 Type=simple
 User=$USER
 Group=$USER
+ExecStartPre=$CARGO_BIN_PATH --version
 ExecStart=$CARGO_BIN_PATH --port 12580
 Restart=always
 RestartSec=5
