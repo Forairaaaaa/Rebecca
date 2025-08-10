@@ -46,12 +46,27 @@ async function _loadScreenInfos() {
   logger.info(`load screen info from HTTP API`);
   
   try {
-    const devices = await _httpRequest('127.0.0.1', API_PORT, '/get-device/all');
-    _screens = devices.map(device => ({
-      id: device.id,
-      ...device.info
-    }));
+    // 首先获取所有设备列表
+    const devices = await _httpRequest('127.0.0.1', API_PORT, '/devices');
     
+    // 过滤出屏幕设备（以"screen"开头的设备）
+    const screenDevices = devices.filter(device => device.startsWith('screen'));
+    
+    // 为每个屏幕设备获取详细信息
+    const screenInfos = [];
+    for (const deviceId of screenDevices) {
+      try {
+        const deviceInfo = await _httpRequest('127.0.0.1', API_PORT, `/${deviceId}/info`);
+        screenInfos.push({
+          id: deviceId,
+          ...deviceInfo
+        });
+      } catch (err) {
+        logger.warn(`Failed to get info for device ${deviceId}:`, err);
+      }
+    }
+    
+    _screens = screenInfos;
     console.log(_screens);
   } catch (err) {
     console.error('Failed to load screen info from API:', err);
