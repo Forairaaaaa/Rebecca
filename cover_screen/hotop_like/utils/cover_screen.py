@@ -11,24 +11,72 @@ _screens = []
 
 async def _load_screen_infos(host="127.0.0.1", port=12580):
     global _screens
-    logger.info(f"load screen from http://{host}:{port}/get-device/all")
-    url = f"http://{host}:{port}/get-device/all"
+
+    # 首先获取设备列表
+    devices_url = f"http://{host}:{port}/devices"
+    logger.info(f"load devices from {devices_url}")
 
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            # 获取设备列表
+            async with session.get(devices_url) as response:
                 if response.status == 200:
-                    devices = await response.json()
-                    for device in devices:
-                        screen_info = {
-                            "name": device["id"],  # 使用id作为name
-                            "frame_buffer_port": device["info"]["frame_buffer_port"],
-                            "bits_per_pixel": device["info"]["bits_per_pixel"],
-                            "screen_size": device["info"]["screen_size"],
-                            "description": device["info"]["description"],
-                            "device_type": device["info"]["device_type"],
-                        }
-                        _screens.append(screen_info)
+                    # 先获取响应文本，然后手动解析JSON
+                    response_text = await response.text()
+                    logger.debug(f"Raw response from devices endpoint: {response_text}")
+
+                    try:
+                        import json
+
+                        device_names = json.loads(response_text)
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Failed to parse JSON from devices endpoint: {e}")
+                        raise e
+
+                    logger.info(f"Found devices: {device_names}")
+
+                    # 为每个screen设备获取详细信息
+                    for device_name in device_names:
+                        if device_name.startswith("screen"):  # 只处理screen设备
+                            info_url = f"http://{host}:{port}/{device_name}/info"
+                            logger.info(
+                                f"Getting info for {device_name} from {info_url}"
+                            )
+
+                            async with session.get(info_url) as info_response:
+                                if info_response.status == 200:
+                                    # 同样处理info响应的JSON解析
+                                    info_text = await info_response.text()
+                                    logger.debug(
+                                        f"Raw response from {device_name}/info: {info_text}"
+                                    )
+
+                                    try:
+                                        device_info = json.loads(info_text)
+                                    except json.JSONDecodeError as e:
+                                        logger.error(
+                                            f"Failed to parse JSON from {device_name}/info: {e}"
+                                        )
+                                        continue
+
+                                    screen_info = {
+                                        "name": device_name,
+                                        "frame_buffer_port": device_info[
+                                            "frame_buffer_port"
+                                        ],
+                                        "bits_per_pixel": device_info["bits_per_pixel"],
+                                        "screen_size": device_info["screen_size"],
+                                        "description": device_info["description"],
+                                        "device_type": device_info["device_type"],
+                                    }
+                                    _screens.append(screen_info)
+                                    logger.info(
+                                        f"Loaded screen info for {device_name}: {screen_info}"
+                                    )
+                                else:
+                                    logger.error(
+                                        f"Failed to get info for {device_name}, status code: {info_response.status}"
+                                    )
                 else:
                     logger.error(
                         f"Failed to get devices, status code: {response.status}"

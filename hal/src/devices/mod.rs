@@ -1,7 +1,7 @@
-mod manager;
+mod imu;
+mod register;
 mod screen;
-mod types;
 
-pub use manager::DEVICE_MANAGER;
+pub use imu::start_imu_service;
+pub use register::{API_REGISTER, ApiCallback, ApiRoute};
 pub use screen::start_screen_service;
-pub use types::DeviceInfo;

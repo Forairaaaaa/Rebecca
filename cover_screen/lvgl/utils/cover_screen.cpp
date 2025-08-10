@@ -114,48 +114,56 @@ void connect(const std::string& apiUrl)
     stop();
 
     try {
-        // 获取所有设备信息
-        std::string url = apiUrl + "/get-device/all";
+        // 获取所有设备列表
+        std::string url = apiUrl + "/devices";
         std::string response = httpGet(url);
 
-        json devices = json::parse(response);
+        json deviceList = json::parse(response);
 
-        for (const auto& device : devices) {
+        for (const auto& deviceId : deviceList) {
             try {
-                ScreenInfo_t screen;
-                screen.id = device.value("id", "");
+                // 获取每个设备的详细信息
+                std::string infoUrl = apiUrl + "/" + deviceId.get<std::string>() + "/info";
+                std::string infoResponse = httpGet(infoUrl);
 
-                auto info = device["info"];
-                screen.description = info.value("description", "");
-                screen.device_type = info.value("device_type", "");
+                json deviceInfo = json::parse(infoResponse);
 
-                auto screen_size = info.value("screen_size", std::vector<int>{0, 0});
-                screen.width = screen_size[0];
-                screen.height = screen_size[1];
-                screen.bits_per_pixel = info.value("bits_per_pixel", 0);
-                screen.frame_buffer_port = info.value("frame_buffer_port", -1);
+                // 只处理屏幕设备（跳过 imu0 等非屏幕设备）
+                if (deviceInfo.contains("screen_size") && deviceInfo.contains("frame_buffer_port")) {
+                    ScreenInfo_t screen;
+                    screen.id = deviceId.get<std::string>();
 
-                std::string addr = "tcp://127.0.0.1:" + std::to_string(screen.frame_buffer_port);
-                screen.socket = std::make_unique<zmq::socket_t>(_context, ZMQ_REQ);
-                screen.socket->connect(addr);
+                    screen.description = deviceInfo.value("description", "");
+                    screen.device_type = deviceInfo.value("device_type", "");
 
-                mclog::info(
-                    "Connected to {} for screen:\n  id: {}\n  size: {} x {}\n  bpp: {}\n  frame_buffer_port: {}\n  "
-                    "device_type: {}",
-                    addr,
-                    screen.id,
-                    screen.width,
-                    screen.height,
-                    screen.bits_per_pixel,
-                    screen.frame_buffer_port,
-                    screen.device_type);
+                    auto screen_size = deviceInfo.value("screen_size", std::vector<int>{0, 0});
+                    screen.width = screen_size[0];
+                    screen.height = screen_size[1];
+                    screen.bits_per_pixel = deviceInfo.value("bits_per_pixel", 0);
+                    screen.frame_buffer_port = deviceInfo.value("frame_buffer_port", -1);
 
-                auto id = screen.id;
-                _screens.push_back(std::move(screen));
-                _screen_index_map[id] = _screens.size() - 1;
+                    std::string addr = "tcp://127.0.0.1:" + std::to_string(screen.frame_buffer_port);
+                    screen.socket = std::make_unique<zmq::socket_t>(_context, ZMQ_REQ);
+                    screen.socket->connect(addr);
+
+                    mclog::info(
+                        "Connected to {} for screen:\n  id: {}\n  size: {} x {}\n  bpp: {}\n  frame_buffer_port: {}\n  "
+                        "device_type: {}",
+                        addr,
+                        screen.id,
+                        screen.width,
+                        screen.height,
+                        screen.bits_per_pixel,
+                        screen.frame_buffer_port,
+                        screen.device_type);
+
+                    auto id = screen.id;
+                    _screens.push_back(std::move(screen));
+                    _screen_index_map[id] = _screens.size() - 1;
+                }
 
             } catch (const std::exception& e) {
-                mclog::error("Failed to process device {}: {}", device.value("id", "unknown"), e.what());
+                mclog::error("Failed to process device {}: {}", deviceId.get<std::string>(), e.what());
             }
         }
 

@@ -1,16 +1,18 @@
-use crate::devices::{DeviceInfo, screen::Screen};
+use crate::common::Emoji;
+use crate::devices::screen::Screen;
 use log::error;
 use regex::Regex;
 use serde::Serialize;
 use serde_json::json;
 use std::io;
+use std::sync::Arc;
 use zeromq::{Socket, SocketRecv, SocketSend};
 
 /// Screen socket
 /// 监听一个 screen zmq rep socket 把接收数据推送到屏幕
 pub struct ScreenSocket {
     pub id: String,
-    screen: Box<dyn Screen>,
+    screen: Arc<dyn Screen + Send + Sync>,
     frame_buffer_port: u16,
     frame_buffer_socket: zeromq::RepSocket,
 }
@@ -25,7 +27,7 @@ struct ScreenSocketInfo {
 }
 
 impl ScreenSocket {
-    pub async fn new(screen: Box<dyn Screen>, id: String) -> io::Result<Self> {
+    pub async fn new(screen: Box<dyn Screen + Send + Sync>, id: String) -> io::Result<Self> {
         // Create frame buffer zmq socket
         let mut frame_buffer_socket = zeromq::RepSocket::new();
         let ep = frame_buffer_socket
@@ -47,7 +49,7 @@ impl ScreenSocket {
 
         Ok(Self {
             id,
-            screen,
+            screen: Arc::from(screen),
             frame_buffer_port,
             frame_buffer_socket,
         })
@@ -56,22 +58,28 @@ impl ScreenSocket {
     pub async fn listen(&mut self) {
         match self.frame_buffer_socket.recv().await {
             Ok(msg) => {
-                let data: &[u8] = msg.get(0).unwrap();
                 let response: String;
 
-                match self.screen.push_frame_buffer(data) {
-                    Ok(()) => {
-                        response = json!({"status": 0, "msg": "ok👌"}).to_string();
+                if let Some(data) = msg.get(0) {
+                    match self.screen.push_frame_buffer(data) {
+                        Ok(()) => {
+                            response = json!({"status": 0, "msg": "ok👌"}).to_string();
+                        }
+                        Err(e) => {
+                            response = json!({"status": 1, "msg": e.to_string()}).to_string();
+                        }
                     }
-                    Err(e) => {
-                        response = json!({"status": 1, "msg": e.to_string()}).to_string();
-                    }
-                }
+                } else {
+                    error!("ZMQ recv error: {:#?}", msg);
+                    response = json!({"status": 1, "msg": "get msg failed"}).to_string();
+                };
 
                 self.frame_buffer_socket
                     .send(response.into())
                     .await
-                    .unwrap();
+                    .unwrap_or_else(|e| {
+                        error!("ZMQ send error: {:?}", e);
+                    });
             }
             Err(e) => {
                 error!("ZMQ recv error: {:?}", e);
@@ -79,20 +87,18 @@ impl ScreenSocket {
         }
     }
 
-    pub fn get_device_info(&self) -> DeviceInfo {
+    pub fn get_device_info(&self) -> String {
         let screen_socket_info = ScreenSocketInfo {
             screen_size: self.screen.size(),
             bits_per_pixel: self.screen.bpp(),
             frame_buffer_port: self.frame_buffer_port,
             device_type: self.screen.device_type(),
-            description:
-                "Render a frame by sending a raw buffer to <frame_buffer_port> via ZMQ REP socket."
-                    .to_string(),
+            description: format!(
+                "{} Render a frame by sending a raw buffer to <frame_buffer_port> using a ZMQ REP socket.",
+                Emoji::PUBLISH
+            ),
         };
 
-        DeviceInfo {
-            id: self.id.clone(),
-            info: json!(screen_socket_info),
-        }
+        serde_json::to_string_pretty(&screen_socket_info).unwrap_or("wtf?🤡".to_string())
     }
 }

@@ -13,9 +13,11 @@
 #include <benchmark/lv_demo_benchmark.h>
 #include <mooncake_log.h>
 #include <lvgl.h>
+#include <music/lv_demo_music.h>
 #include <stress/lv_demo_stress.h>
 #include <thread>
 #include <signal.h>
+#include <widgets/lv_demo_widgets.h>
 
 bool stop_requested = false;
 
@@ -33,7 +35,7 @@ int main(int, char**)
 
     cover_screen::connect();
 
-    if (!lvgl_port::init("screen1")) {
+    if (!lvgl_port::init("screen0")) {
         mclog::error("Failed to initialize LVGL");
         cover_screen::stop();
         return 1;
@@ -42,6 +44,8 @@ int main(int, char**)
     // App shit
     lv_demo_stress();
     // lv_demo_benchmark();
+    // lv_demo_widgets();
+    // lv_demo_music();
 
     while (!stop_requested) {
         lvgl_port::update();

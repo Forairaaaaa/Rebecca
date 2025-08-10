@@ -15,12 +15,10 @@ TEST_CASES=(
     "$SCREEN -u https://img.soogif.com/4fpkeRjUIK7X0Fc5GdMW4NtqvAI0Cnya.gif"
 )
 
-cargo build --release
-
 for test_case in "${TEST_CASES[@]}"; do
     echo "--------------------------------"
     echo "test case: $test_case"
-    kava $test_case
+    kava -v $test_case
     echo "--------------------------------"
     sleep 1
 done

@@ -1,0 +1,10 @@
+.venv/
+.env/
+build/
+*.egg-info/
+__pycache__/
+*.py[cod]
+.vscode/
+.ruff_cache/
+imu_data_pb2.py
+imu_data.proto

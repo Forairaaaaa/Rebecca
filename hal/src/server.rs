@@ -1,9 +1,10 @@
-use crate::devices::DEVICE_MANAGER;
+use crate::common::Emoji;
+use crate::devices::{API_REGISTER, ApiRoute};
 use hyper::service::service_fn;
-use hyper::{Method, Request, Response, StatusCode};
+use hyper::{Request, Response};
 use hyper_util::rt::TokioIo;
 use hyper_util::server::conn::auto;
-use log::{debug, error, info};
+use log::{error, info};
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -13,45 +14,13 @@ use tokio::{sync::Notify, task};
 async fn handle_request(
     req: Request<hyper::body::Incoming>,
 ) -> Result<Response<String>, Infallible> {
-    let path = req.uri().path();
-    let method = req.method();
+    let api_route = ApiRoute {
+        path: req.uri().path().to_string(),
+        method: req.method().clone(),
+        description: Emoji::SEARCH.to_string(),
+    };
 
-    match (method, path) {
-        (&Method::GET, path) if path.starts_with("/get-device/") => {
-            // 提取设备ID
-            let device_id = &path[12..]; // 跳过 "/get-device/" 前缀
-
-            // List all devices
-            if device_id.is_empty() || device_id == "all" {
-                debug!("get all device infos");
-                let devices = DEVICE_MANAGER.get_all_devices().await;
-                let response_body = serde_json::to_string_pretty(&devices).unwrap();
-                return Ok(Response::builder()
-                    .status(StatusCode::OK)
-                    .header("content-type", "application/json")
-                    .body(response_body)
-                    .unwrap());
-            }
-
-            debug!("get device info: {}", device_id);
-            let Some(device_info) = DEVICE_MANAGER.get_device(device_id).await else {
-                return Ok(Response::builder()
-                    .status(StatusCode::NOT_FOUND)
-                    .body("device not found".to_string())
-                    .unwrap());
-            };
-
-            return Ok(Response::builder()
-                .status(StatusCode::OK)
-                .header("content-type", "application/json")
-                .body(serde_json::to_string_pretty(&device_info.info).unwrap())
-                .unwrap());
-        }
-        _ => Ok(Response::builder()
-            .status(StatusCode::NOT_FOUND)
-            .body("not found".to_string())
-            .unwrap()),
-    }
+    Ok(API_REGISTER.invoke_api(api_route, req).await)
 }
 
 /// Start a http server to handle hal request
@@ -72,8 +41,7 @@ pub fn start_server(port: u16, shutdown_notify: Arc<Notify>) -> task::JoinHandle
             }
         };
 
-        info!("http server started at http://{}", addr);
-        info!("use /get-device/<device_id> to get device info");
+        info!("http server started at http://{} 🔮", addr);
 
         loop {
             tokio::select! {
