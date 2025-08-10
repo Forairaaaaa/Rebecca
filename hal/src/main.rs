@@ -1,3 +1,4 @@
+mod common;
 mod devices;
 mod server;
 

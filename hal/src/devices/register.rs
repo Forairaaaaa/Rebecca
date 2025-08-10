@@ -1,4 +1,5 @@
 /// 全局单例 API 注册表，用于注册设备 API，以及给 server 提供路由和回调
+use crate::common::Emoji;
 use derivative::Derivative;
 use hyper::{Method, Request, Response, StatusCode};
 use indexmap::IndexMap;
@@ -53,7 +54,7 @@ impl ApiRegister {
             ApiRoute {
                 path: "/apis".to_string(),
                 method: Method::GET,
-                description: "List all available APIs".to_string(),
+                description: format!("{} List all available APIs", Emoji::APIS),
             },
             Box::new(move |_request| {
                 Box::pin(async move {
@@ -69,7 +70,7 @@ impl ApiRegister {
             ApiRoute {
                 path: "/devices".to_string(),
                 method: Method::GET,
-                description: "List all available devices".to_string(),
+                description: format!("{} List all available devices", Emoji::DEVICES),
             },
             Box::new(move |_request| {
                 Box::pin(async move {

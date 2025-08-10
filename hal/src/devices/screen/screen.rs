@@ -1,3 +1,4 @@
+use crate::common::Emoji;
 use crate::devices::{
     API_REGISTER, ApiRoute,
     screen::{FrameBufferScreen, ScreenSocket},
@@ -35,7 +36,7 @@ pub async fn start_screen_service(
                 ApiRoute {
                     path: format!("/{}/info", screen_socket.id),
                     method: Method::GET,
-                    description: "Get device info".to_string(),
+                    description: format!("{} Get device info", Emoji::INFO),
                 },
                 Box::new(move |_request| {
                     let screen_info = screen_info.clone();

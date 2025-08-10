@@ -1,3 +1,4 @@
+use crate::common::Emoji;
 use crate::devices::{API_REGISTER, ApiRoute};
 use hyper::service::service_fn;
 use hyper::{Request, Response};
@@ -16,7 +17,7 @@ async fn handle_request(
     let api_route = ApiRoute {
         path: req.uri().path().to_string(),
         method: req.method().clone(),
-        description: "🔍".to_string(),
+        description: Emoji::SEARCH.to_string(),
     };
 
     Ok(API_REGISTER.invoke_api(api_route, req).await)

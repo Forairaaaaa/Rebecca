@@ -1,3 +1,4 @@
+use crate::common::Emoji;
 use crate::devices::screen::Screen;
 use log::error;
 use regex::Regex;
@@ -86,9 +87,10 @@ impl ScreenSocket {
             bits_per_pixel: self.screen.bpp(),
             frame_buffer_port: self.frame_buffer_port,
             device_type: self.screen.device_type(),
-            description:
-                "Render a frame by sending a raw buffer to <frame_buffer_port> via ZMQ REP socket"
-                    .to_string(),
+            description: format!(
+                "{} Render a frame by sending a raw buffer to <frame_buffer_port> via ZMQ REP socket",
+                Emoji::PUBLISH
+            ),
         };
 
         serde_json::to_string_pretty(&screen_socket_info).unwrap_or("wtf?🤡".to_string())

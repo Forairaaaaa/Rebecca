@@ -1,11 +1,10 @@
-# 🐱 Rebecca HAL
+# 🔮 Rebecca HAL
 
 一个静静运行的硬件抽象层服务喵～默默地在后台管理着设备们 ✨
 
 ## 🎯 功能
 
 - 🌐 HTTP 接口管理服务（默认端口 12580）
-- 🖥️ 副屏 Frame Buffer 推送接口
 - 🔧 设备状态查询和控制
 - 🚀 systemd 服务支持，开机自启
 
@@ -39,28 +38,68 @@ rebecca-hal [选项]
 
 ### 🌐 API 接口
 
-- `GET /get-device/all` - 获取所有设备信息
-- `GET /get-device/{device_id}` - 获取指定设备信息
+- `GET /apis` - 获取所有可用接口
+- `GET /devices` - 获取所有可用设备
 
 #### 🎯 使用示例
 
 获取屏幕设备信息：
 ```bash
-curl http://127.0.0.1:12580/get-device/screen0
+curl http://localhost:12580/devices
 ```
 
 返回：
 ```json
-{
-  "bits_per_pixel": 16,
-  "description": "Render a frame by sending a raw buffer to <frame_buffer_port> via ZMQ REP socket.",
-  "device_type": "../../../spi0.0",
-  "frame_buffer_port": 37029,
-  "screen_size": [
-    320,
-    240
-  ]
-}
+[
+  "screen0",
+  "screen1",
+  "imu0"
+]
+```
+
+```bash
+curl http://localhost:12580/apis
+```
+
+返回：
+```json
+[
+  {
+    "path": "/apis",
+    "method": "GET",
+    "description": "🔮 List all available APIs"
+  },
+  {
+    "path": "/devices",
+    "method": "GET",
+    "description": "🪄 List all available devices"
+  },
+  {
+    "path": "/screen0/info",
+    "method": "GET",
+    "description": "📜 Get device info"
+  },
+  {
+    "path": "/screen1/info",
+    "method": "GET",
+    "description": "📜 Get device info"
+  },
+  {
+    "path": "/imu0/info",
+    "method": "GET",
+    "description": "📜 Get device info"
+  },
+  {
+    "path": "/imu0/start",
+    "method": "GET",
+    "description": "✨ Start publishing data"
+  },
+  {
+    "path": "/imu0/stop",
+    "method": "GET",
+    "description": "💤 Stop publishing data"
+  }
+]
 ```
 
 ### 📋 服务管理

@@ -1,7 +1,6 @@
-use crate::devices::{
-    API_REGISTER, ApiRoute,
-    imu::{ImuFromIio, socket::ImuSocket},
-};
+use crate::common::Emoji;
+use crate::devices::imu::{ImuFromIio, socket::ImuSocket};
+use crate::devices::{API_REGISTER, ApiRoute};
 use hyper::{Method, Response, StatusCode};
 use log::{info, warn};
 use std::io;
@@ -41,7 +40,7 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
             ApiRoute {
                 path: format!("/{}/info", imu_socket.id),
                 method: Method::GET,
-                description: "Get device info".to_string(),
+                description: format!("{} Get device info", Emoji::INFO),
             },
             Box::new(move |_request| {
                 let imu_socket = Arc::clone(&imu_socket_clone1);
@@ -59,7 +58,7 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
             ApiRoute {
                 path: format!("/{}/start", imu_socket.id),
                 method: Method::GET,
-                description: "Start publishing data".to_string(),
+                description: format!("{} Start publishing data", Emoji::START),
             },
             Box::new(move |_request| {
                 let imu_socket = Arc::clone(&imu_socket_clone2);
@@ -82,7 +81,7 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
             ApiRoute {
                 path: format!("/{}/stop", imu_socket.id),
                 method: Method::GET,
-                description: "Stop publishing data".to_string(),
+                description: format!("{} Stop publishing data", Emoji::STOP),
             },
             Box::new(move |_request| {
                 let imu_socket = Arc::clone(&imu_socket_clone3);

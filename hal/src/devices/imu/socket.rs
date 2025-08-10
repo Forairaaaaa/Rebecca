@@ -1,3 +1,4 @@
+use crate::common::Emoji;
 use crate::devices::imu::Imu;
 use log::{debug, error, warn};
 use prost::Message;
@@ -200,7 +201,10 @@ impl ImuSocket {
             status: if self.is_running() { "running" } else { "idle" }.to_string(),
             sample_rate: self.imu.sample_rate(),
             imu_data_port: self.imu_data_port,
-            description: "Subscribe IMU data from <imu_data_port> via ZMQ SUB socket. When running, data is published in protobuf format".to_string(),
+            description: format!(
+                "{} Subscribe IMU data from <imu_data_port> via ZMQ SUB socket. When running, data is published in protobuf format",
+                Emoji::SUBSCRIBE
+            ),
         };
 
         serde_json::to_string_pretty(&imu_socket_info).unwrap_or("wtf?🤡".to_string())
