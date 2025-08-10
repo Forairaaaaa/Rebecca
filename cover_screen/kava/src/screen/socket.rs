@@ -16,13 +16,6 @@ struct DeviceInfo {
     screen_size: [u32; 2],
 }
 
-#[derive(Debug, Deserialize)]
-struct Device {
-    id: String,
-    #[allow(dead_code)]
-    info: DeviceInfo,
-}
-
 pub struct SocketCoverScreen {
     device_info: DeviceInfo,
     socket: ReqSocket,
@@ -38,7 +31,7 @@ struct PushFrameResponse {
 impl SocketCoverScreen {
     pub async fn list_screens(port: u16) -> io::Result<Vec<String>> {
         let client = reqwest::Client::new();
-        let url = format!("http://127.0.0.1:{}/get-device/all", port);
+        let url = format!("http://127.0.0.1:{}/devices", port);
 
         let response = client.get(&url).send().await.map_err(|e| {
             io::Error::new(io::ErrorKind::Other, format!("HTTP request failed: {}", e))
@@ -51,12 +44,13 @@ impl SocketCoverScreen {
             ));
         }
 
-        let devices: Vec<Device> = response.json().await.map_err(|e| {
+        let mut devices: Vec<String> = response.json().await.map_err(|e| {
             io::Error::new(io::ErrorKind::Other, format!("Failed to parse JSON: {}", e))
         })?;
 
-        let screens = devices.into_iter().map(|device| device.id).collect();
-        Ok(screens)
+        devices.retain(|id| id.contains("screen"));
+
+        Ok(devices)
     }
 
     pub async fn new(name: &str, port: u16) -> io::Result<Self> {
@@ -78,7 +72,7 @@ impl SocketCoverScreen {
 
 async fn get_device_info(name: &str, port: u16) -> io::Result<DeviceInfo> {
     let client = reqwest::Client::new();
-    let url = format!("http://127.0.0.1:{}/get-device/{}", port, name);
+    let url = format!("http://127.0.0.1:{}/{}/info", port, name);
 
     let response =
         client.get(&url).send().await.map_err(|e| {

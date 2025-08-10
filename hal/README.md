@@ -43,7 +43,7 @@ rebecca-hal [选项]
 
 #### 🎯 使用示例
 
-获取屏幕设备信息：
+获取可用设备：
 ```bash
 curl http://localhost:12580/devices
 ```
@@ -57,6 +57,7 @@ curl http://localhost:12580/devices
 ]
 ```
 
+获取可用接口：
 ```bash
 curl http://localhost:12580/apis
 ```
