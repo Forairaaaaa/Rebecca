@@ -103,6 +103,38 @@ curl http://localhost:12580/apis
 ]
 ```
 
+获取设备信息：
+```bash
+curl http://localhost:12580/screen0/info
+```
+
+```json
+{
+  "screen_size": [
+    320,
+    240
+  ],
+  "bits_per_pixel": 16,
+  "frame_buffer_port": 37173,
+  "device_type": "../../../spi0.0",
+  "description": "🕊️ Render a frame by sending a raw buffer to <frame_buffer_port> via ZMQ REP socket"
+}
+```
+
+```bash
+curl http://localhost:12580/imu0/info
+```
+
+```json
+{
+  "device_type": "mpu6500",
+  "status": "idle",
+  "sample_rate": 50,
+  "imu_data_port": 34349,
+  "description": "📫 Subscribe IMU data from <imu_data_port> via ZMQ SUB socket in Protobuf format. Schema available at /imu0/schema"
+}
+```
+
 ### 📋 服务管理
 
 ```bash
