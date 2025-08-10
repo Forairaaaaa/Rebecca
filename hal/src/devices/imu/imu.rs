@@ -41,7 +41,7 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
             ApiRoute {
                 path: format!("/{}/info", imu_socket.id),
                 method: Method::GET,
-                description: format!("{} Get device info", Emoji::INFO),
+                description: format!("{} Get device info.", Emoji::INFO),
             },
             Box::new(move |_request| {
                 let imu_socket = Arc::clone(&imu_socket_clone1);
@@ -59,7 +59,7 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
             ApiRoute {
                 path: format!("/{}/schema", imu_socket.id),
                 method: Method::GET,
-                description: format!("{} Get IMU data protobuf schema", Emoji::INFO),
+                description: format!("{} Get IMU data protobuf schema.", Emoji::FORMAT),
             },
             Box::new(move |_request| {
                 let imu_socket = Arc::clone(&imu_socket_clone4);
@@ -77,7 +77,7 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
             ApiRoute {
                 path: format!("/{}/start", imu_socket.id),
                 method: Method::GET,
-                description: format!("{} Start publishing data", Emoji::START),
+                description: format!("{} Start publishing data.", Emoji::START),
             },
             Box::new(move |_request| {
                 let imu_socket = Arc::clone(&imu_socket_clone2);
@@ -100,7 +100,7 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
             ApiRoute {
                 path: format!("/{}/stop", imu_socket.id),
                 method: Method::GET,
-                description: format!("{} Stop publishing data", Emoji::STOP),
+                description: format!("{} Stop publishing data.", Emoji::STOP),
             },
             Box::new(move |_request| {
                 let imu_socket = Arc::clone(&imu_socket_clone3);

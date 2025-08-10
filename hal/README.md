@@ -88,17 +88,22 @@ curl http://localhost:12580/apis
   {
     "path": "/imu0/info",
     "method": "GET",
-    "description": "📜 Get device info"
+    "description": "📜 Get device info."
+  },
+  {
+    "path": "/imu0/schema",
+    "method": "GET",
+    "description": "🖊️ Get IMU data protobuf schema."
   },
   {
     "path": "/imu0/start",
     "method": "GET",
-    "description": "✨ Start publishing data"
+    "description": "✨ Start publishing data."
   },
   {
     "path": "/imu0/stop",
     "method": "GET",
-    "description": "💤 Stop publishing data"
+    "description": "💤 Stop publishing data."
   }
 ]
 ```
@@ -115,9 +120,9 @@ curl http://localhost:12580/screen0/info
     240
   ],
   "bits_per_pixel": 16,
-  "frame_buffer_port": 37173,
+  "frame_buffer_port": 46065,
   "device_type": "../../../spi0.0",
-  "description": "🕊️ Render a frame by sending a raw buffer to <frame_buffer_port> via ZMQ REP socket"
+  "description": "🕊️ Render a frame by sending a raw buffer to <frame_buffer_port> using a ZMQ REP socket."
 }
 ```
 
@@ -130,8 +135,8 @@ curl http://localhost:12580/imu0/info
   "device_type": "mpu6500",
   "status": "idle",
   "sample_rate": 50,
-  "imu_data_port": 34571,
-  "description": "📫 Subscribe IMU data from <imu_data_port> via ZMQ SUB socket. When running, data will be published in protobuf format, schema available at /imu0/schema"
+  "imu_data_port": 34897,
+  "description": "📫 Subscribe to IMU data from <imu_data_port> using a ZMQ SUB socket. The data is published in Protobuf format, and its schema is available at /imu0/schema."
 }
 ```
 
