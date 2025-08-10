@@ -16,11 +16,23 @@ def format_float(value: float, width: int = 9, precision: int = 2) -> str:
     return f"{value:+{width}.{precision}f}"
 
 
-def format_triplet(values: Sequence[float], width: int = 9, precision: int = 2) -> str:
+def format_triplet(values: Sequence[float], width: int = 6, precision: int = 2) -> str:
     """格式化三元向量，固定每项宽度并始终带符号。"""
     safe = list(values)[:3] + [0.0] * max(0, 3 - len(values))
     ax, ay, az = safe[:3]
     return f"{format_float(ax, width, precision)} {format_float(ay, width, precision)} {format_float(az, width, precision)}"
+
+
+def format_quadruplet(
+    values: Sequence[float], width: int = 6, precision: int = 2
+) -> str:
+    """格式化四元组，固定每项宽度并始终带符号。"""
+    safe = list(values)[:4] + [0.0] * max(0, 4 - len(values))
+    a, b, c, d = safe[:4]
+    return (
+        f"{format_float(a, width, precision)} {format_float(b, width, precision)} "
+        f"{format_float(c, width, precision)} {format_float(d, width, precision)}"
+    )
 
 
 def get_imu_info() -> Optional[dict]:
@@ -100,14 +112,18 @@ def subscribe_and_print_imu_data(
             mag = list(message.mag)
             temp = message.temp
             timestamp = message.timestamp
+            quaternion = list(message.quaternion)
+            euler_angles = list(message.euler_angles)
 
             line = (
                 f"[{received_count:04d}] "
-                f"ts={timestamp:>16d} | "
+                f"[{timestamp:>16d}] | "
                 f"accel: {format_triplet(accel)} | "
                 f"gyro: {format_triplet(gyro)} | "
                 f"mag: {format_triplet(mag)} | "
-                f"temp: {format_float(temp)}"
+                f"temp: {format_float(temp)} | "
+                f"quat: {format_quadruplet(quaternion)} | "
+                f"euler(y,p,r): {format_triplet(euler_angles)}"
             )
             print(line)
 

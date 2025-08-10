@@ -19,29 +19,38 @@ use zeromq::{Socket, SocketSend};
 // Protobuf message definition for IMU data
 #[derive(Clone, PartialEq, Message)]
 pub struct ImuDataProto {
-    #[prost(float, repeated, tag = "1")]
-    pub accel: Vec<f32>,
-    #[prost(float, repeated, tag = "2")]
-    pub gyro: Vec<f32>,
-    #[prost(float, repeated, tag = "3")]
-    pub mag: Vec<f32>,
-    #[prost(float, tag = "4")]
-    pub temp: f32,
-    #[prost(uint64, tag = "5")]
+    #[prost(uint64, tag = "1")]
     pub timestamp: u64,
+    #[prost(float, repeated, tag = "2")]
+    pub accel: Vec<f32>,
+    #[prost(float, repeated, tag = "3")]
+    pub gyro: Vec<f32>,
+    #[prost(float, repeated, tag = "4")]
+    pub mag: Vec<f32>,
+    #[prost(float, tag = "5")]
+    pub temp: f32,
+    #[prost(float, repeated, tag = "6")]
+    pub quaternion: Vec<f32>,
+    #[prost(float, repeated, tag = "7")]
+    pub euler_angles: Vec<f32>,
 }
 
 // Human-readable protobuf schema to be exposed via schema API
 const IMU_DATA_PROTO_SCHEMA: &str = r#"syntax = "proto3";
 
 message ImuDataProto {
-  repeated float accel = 1;   // ax, ay, az
-  repeated float gyro  = 2;   // gx, gy, gz
-  repeated float mag   = 3;   // mx, my, mz
-  float         temp   = 4;   // Celsius
-  uint64        timestamp = 5; // microseconds since UNIX_EPOCH
+  uint64        timestamp = 1; // microseconds since UNIX_EPOCH
+  repeated float accel = 2;   // ax, ay, az
+  repeated float gyro  = 3;   // gx, gy, gz
+  repeated float mag   = 4;   // mx, my, mz
+  float         temp   = 5;   // Celsius
+  repeated float quaternion = 6; // quaternion (4 floats)
+  repeated float euler_angles = 7; // yaw, pitch, roll (radians)
 }
 "#;
+
+// On imu data callback for data's final adjustment before publishing
+pub type OnImuData = Arc<dyn Fn(&mut ImuData) + Send + Sync>;
 
 pub struct ImuSocket {
     pub id: String,
@@ -51,6 +60,7 @@ pub struct ImuSocket {
     is_running: Arc<AtomicBool>,
     update_task_handle: Arc<tokio::sync::Mutex<Option<task::JoinHandle<()>>>>,
     shutdown_notify: Arc<Notify>,
+    on_imu_data: OnImuData,
 }
 
 #[derive(Serialize, Debug)]
@@ -62,10 +72,12 @@ struct ImuSocketInfo {
     description: String,
 }
 
-// Schema is served via dedicated API instead of embedding in info JSON
-
 impl ImuSocket {
-    pub async fn new(imu: Box<dyn Imu + Send + Sync>, id: String) -> io::Result<Self> {
+    pub async fn new(
+        imu: Box<dyn Imu + Send + Sync>,
+        id: String,
+        on_imu_data: OnImuData,
+    ) -> io::Result<Self> {
         debug!("creating imu socket for device: {}", id);
 
         // Create ZMQ PUB socket
@@ -97,6 +109,7 @@ impl ImuSocket {
             is_running: Arc::new(AtomicBool::new(false)),
             update_task_handle: Arc::new(tokio::sync::Mutex::new(None)),
             shutdown_notify: Arc::new(Notify::new()),
+            on_imu_data,
         })
     }
 
@@ -158,6 +171,7 @@ impl ImuSocket {
         let is_running = self.is_running.clone();
         let shutdown_notify = self.shutdown_notify.clone();
         let id = self.id.clone();
+        let on_imu_data = self.on_imu_data.clone();
 
         task::spawn(async move {
             let sample_rate = imu.sample_rate();
@@ -166,18 +180,18 @@ impl ImuSocket {
             let mut interval = time::interval(Duration::from_millis(interval_ms));
 
             // Orientation estimation using Madgwick filter
-            let mut ahrs = Madgwick::new(interval_s, 0.3);
+            let mut ahrs = Madgwick::new(interval_s, 0.1);
             let mut update_orientation = |imu_data: &ImuData| -> ([f32; 4], [f32; 3]) {
                 // radians/s
                 let gyroscope = Vector3::new(
-                    imu_data.gyro[0] as f64,
-                    imu_data.gyro[1] as f64,
                     imu_data.gyro[2] as f64,
+                    imu_data.gyro[1] as f64,
+                    imu_data.gyro[0] as f64,
                 );
                 let accelerometer = Vector3::new(
-                    imu_data.accel[0] as f64,
-                    imu_data.accel[1] as f64,
                     imu_data.accel[2] as f64,
+                    imu_data.accel[1] as f64,
+                    imu_data.accel[0] as f64,
                 );
 
                 let quat = ahrs.update_imu(&gyroscope, &accelerometer).unwrap();
@@ -189,7 +203,7 @@ impl ImuSocket {
                     quat.coords[2] as f32,
                     quat.coords[3] as f32,
                 ];
-                let euler_angles = [roll as f32, pitch as f32, yaw as f32];
+                let euler_angles = [yaw as f32, pitch as f32, roll as f32];
 
                 (quaternion, euler_angles)
             };
@@ -215,18 +229,23 @@ impl ImuSocket {
                         imu_data.quaternion = quaternion;
                         imu_data.euler_angles = euler_angles;
 
+                        // Invoke on_imu_data callback for user's final adjustment
+                        on_imu_data(&mut imu_data);
+
                         debug!("{} get imu data: {:#?}", id, imu_data);
 
                         // Convert to protobuf message
                         let proto_msg = ImuDataProto {
-                            accel: imu_data.accel.to_vec(),
-                            gyro: imu_data.gyro.to_vec(),
-                            mag: imu_data.mag.to_vec(),
-                            temp: imu_data.temp,
                             timestamp: std::time::SystemTime::now()
                                 .duration_since(std::time::UNIX_EPOCH)
                                 .unwrap_or_default()
                                 .as_micros() as u64,
+                            accel: imu_data.accel.to_vec(),
+                            gyro: imu_data.gyro.to_vec(),
+                            mag: imu_data.mag.to_vec(),
+                            temp: imu_data.temp,
+                            quaternion: imu_data.quaternion.to_vec(),
+                            euler_angles: imu_data.euler_angles.to_vec(),
                         };
 
                         // Serialize to bytes

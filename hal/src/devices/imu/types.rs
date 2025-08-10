@@ -7,7 +7,7 @@ pub struct ImuData {
     pub mag: [f32; 3],   // normalized to gauss
     pub temp: f32,       // Celsius
     pub quaternion: [f32; 4],
-    pub euler_angles: [f32; 3], // radians
+    pub euler_angles: [f32; 3], // ZYX (Yaw-Pitch-Roll) in radians
 }
 
 pub trait Imu {
