@@ -1,7 +1,7 @@
 use crate::common::Emoji;
 use crate::devices::imu::{ImuFromIio, socket::ImuSocket};
 use crate::devices::{API_REGISTER, ApiRoute};
-use hyper::{Method, Response, StatusCode, header::CONTENT_TYPE};
+use hyper::{Method, Response, StatusCode};
 use log::{info, warn};
 use std::io;
 use std::sync::Arc;

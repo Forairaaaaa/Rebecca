@@ -14,4 +14,6 @@
 
 `protoc --python_out=. imu_data.proto`
 
+运行
+
 `uv run imu.py`
