@@ -216,7 +216,7 @@ impl ImuSocket {
             sample_rate: self.imu.sample_rate(),
             imu_data_port: self.imu_data_port,
             description: format!(
-                "{} Subscribe IMU data from <imu_data_port> via ZMQ SUB socket in Protobuf format. Schema available at /{}/schema",
+                "{} Subscribe IMU data from <imu_data_port> via ZMQ SUB socket. When running, data will be published in protobuf format, schema available at /{}/schema",
                 Emoji::SUBSCRIBE,
                 self.id
             ),

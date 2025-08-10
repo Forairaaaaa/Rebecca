@@ -130,8 +130,8 @@ curl http://localhost:12580/imu0/info
   "device_type": "mpu6500",
   "status": "idle",
   "sample_rate": 50,
-  "imu_data_port": 34349,
-  "description": "📫 Subscribe IMU data from <imu_data_port> via ZMQ SUB socket in Protobuf format. Schema available at /imu0/schema"
+  "imu_data_port": 34571,
+  "description": "📫 Subscribe IMU data from <imu_data_port> via ZMQ SUB socket. When running, data will be published in protobuf format, schema available at /imu0/schema"
 }
 ```
 
