@@ -41,6 +41,7 @@ pub struct ImuSocket {
 struct ImuSocketInfo {
     imu_data_port: u16,
     device_type: String,
+    status: String,
     description: String,
 }
 
@@ -157,7 +158,7 @@ impl ImuSocket {
 
                         // Read IMU data
                         let imu_data = imu.imu_data();
-                        // debug!("{} get imu data: {:?}", id, imu_data);
+                        // debug!("{} get imu data: {:#?}", id, imu_data);
 
                         // Convert to protobuf message
                         let proto_msg = ImuDataProto {
@@ -195,7 +196,8 @@ impl ImuSocket {
         let imu_socket_info = ImuSocketInfo {
             imu_data_port: self.imu_data_port,
             device_type: self.imu.name(),
-            description: "Subscribe IMU data from <imu_data_port> via ZMQ SUB socket. Data is published in protobuf format at 30Hz.".to_string(),
+            status: if self.is_running() { "running" } else { "idle" }.to_string(),
+            description: "Subscribe IMU data from <imu_data_port> via ZMQ SUB socket. When running, data is published in protobuf format at 30Hz.".to_string(),
         };
 
         serde_json::to_string_pretty(&imu_socket_info).unwrap_or("wtf?🤡".to_string())

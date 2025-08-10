@@ -1,11 +1,11 @@
-use derivative::Derivative;
 /// 全局单例 API 注册表，用于注册设备 API，以及给 server 提供路由和回调
+use derivative::Derivative;
 use hyper::{Method, Request, Response, StatusCode};
-use log::debug;
+use indexmap::IndexMap;
+use log::{debug, error};
 use once_cell::sync::Lazy;
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
-use std::collections::HashMap;
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -41,19 +41,19 @@ pub type ApiCallback = Box<
 >;
 
 pub struct ApiRegister {
-    api_map: RwLock<HashMap<ApiRoute, ApiCallback>>,
+    api_map: RwLock<IndexMap<ApiRoute, ApiCallback>>,
+    device_list: RwLock<Vec<String>>,
 }
 
 impl ApiRegister {
     pub fn new() -> Self {
-        let mut api_map: HashMap<ApiRoute, ApiCallback> = HashMap::new();
+        let mut api_map: IndexMap<ApiRoute, ApiCallback> = IndexMap::new();
 
-        // /list API，返回所有 API 的列表
         api_map.insert(
             ApiRoute {
-                path: "/list".to_string(),
+                path: "/apis".to_string(),
                 method: Method::GET,
-                description: "List all API routes".to_string(),
+                description: "List all available APIs".to_string(),
             },
             Box::new(move |_request| {
                 Box::pin(async move {
@@ -65,8 +65,25 @@ impl ApiRegister {
             }),
         );
 
+        api_map.insert(
+            ApiRoute {
+                path: "/devices".to_string(),
+                method: Method::GET,
+                description: "List all available devices".to_string(),
+            },
+            Box::new(move |_request| {
+                Box::pin(async move {
+                    let device_list = API_REGISTER.get_device_list().await;
+                    let body =
+                        serde_json::to_string_pretty(&device_list).unwrap_or("wtf?🤡".to_string());
+                    Response::new(body)
+                })
+            }),
+        );
+
         Self {
             api_map: RwLock::new(api_map),
+            device_list: RwLock::new(vec![]),
         }
     }
 
@@ -88,14 +105,6 @@ impl ApiRegister {
         api_map.keys().cloned().collect()
     }
 
-    pub async fn remove_api(&self, route: ApiRoute) -> Option<ApiCallback> {
-        let mut api_map = self.api_map.write().await;
-
-        debug!("remove api route: {:?}", route);
-
-        api_map.remove(&route)
-    }
-
     pub async fn invoke_api(
         &self,
         route: ApiRoute,
@@ -114,6 +123,21 @@ impl ApiRegister {
                 .body("Not Found".to_string())
                 .unwrap()
         }
+    }
+
+    /// Add device to device list so the /devices can find it
+    pub async fn add_device(&self, device_id: String) {
+        let mut device_list = self.device_list.write().await;
+        if device_list.contains(&device_id) {
+            error!("device: {:?} already exists", device_id);
+            return;
+        }
+        device_list.push(device_id);
+    }
+
+    pub async fn get_device_list(&self) -> Vec<String> {
+        let device_list = self.device_list.read().await;
+        device_list.clone()
     }
 }
 

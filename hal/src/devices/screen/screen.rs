@@ -26,6 +26,9 @@ pub async fn start_screen_service(
         let screen_socket = ScreenSocket::new(Box::new(screen), format!("screen{}", i)).await?;
         let screen_info = screen_socket.get_device_info();
 
+        // Add device to device list
+        API_REGISTER.add_device(screen_socket.id.clone()).await;
+
         // Register get info api
         match API_REGISTER
             .add_api(

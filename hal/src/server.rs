@@ -40,8 +40,7 @@ pub fn start_server(port: u16, shutdown_notify: Arc<Notify>) -> task::JoinHandle
             }
         };
 
-        info!("http server started at http://{}", addr);
-        info!("use /get-device/<device_id> to get device info");
+        info!("http server started at http://{} 🔮", addr);
 
         loop {
             tokio::select! {
