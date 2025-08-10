@@ -28,6 +28,18 @@ pub struct ImuDataProto {
     pub timestamp: u64,
 }
 
+// Human-readable protobuf schema to be exposed via schema API
+const IMU_DATA_PROTO_SCHEMA: &str = r#"syntax = "proto3";
+
+message ImuDataProto {
+  repeated float accel = 1;   // ax, ay, az
+  repeated float gyro  = 2;   // gx, gy, gz
+  repeated float mag   = 3;   // mx, my, mz
+  float         temp   = 4;   // Celsius
+  uint64        timestamp = 5; // microseconds since UNIX_EPOCH
+}
+"#;
+
 pub struct ImuSocket {
     pub id: String,
     imu: Arc<dyn Imu + Send + Sync>,
@@ -46,6 +58,8 @@ struct ImuSocketInfo {
     imu_data_port: u16,
     description: String,
 }
+
+// Schema is served via dedicated API instead of embedding in info JSON
 
 impl ImuSocket {
     pub async fn new(imu: Box<dyn Imu + Send + Sync>, id: String) -> io::Result<Self> {
@@ -202,12 +216,17 @@ impl ImuSocket {
             sample_rate: self.imu.sample_rate(),
             imu_data_port: self.imu_data_port,
             description: format!(
-                "{} Subscribe IMU data from <imu_data_port> via ZMQ SUB socket. When running, data is published in protobuf format",
-                Emoji::SUBSCRIBE
+                "{} Subscribe IMU data from <imu_data_port> via ZMQ SUB socket in Protobuf format. Schema available at /{}/schema",
+                Emoji::SUBSCRIBE,
+                self.id
             ),
         };
 
         serde_json::to_string_pretty(&imu_socket_info).unwrap_or("wtf?🤡".to_string())
+    }
+
+    pub fn get_schema(&self) -> String {
+        IMU_DATA_PROTO_SCHEMA.to_string()
     }
 
     pub fn is_running(&self) -> bool {

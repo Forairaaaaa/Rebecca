@@ -8,5 +8,6 @@ dependencies = [
     "requests",
     "pyzmq",
     "pillow",
-    "numpy"
+    "numpy",
+    "protobuf",
 ]

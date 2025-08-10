@@ -1,7 +1,7 @@
 use crate::common::Emoji;
 use crate::devices::imu::{ImuFromIio, socket::ImuSocket};
 use crate::devices::{API_REGISTER, ApiRoute};
-use hyper::{Method, Response, StatusCode};
+use hyper::{Method, Response, StatusCode, header::CONTENT_TYPE};
 use log::{info, warn};
 use std::io;
 use std::sync::Arc;
@@ -20,7 +20,8 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
         imu_socket,
         imu_socket_clone1,
         imu_socket_clone2,
-        imu_socket_clone3
+        imu_socket_clone3,
+        imu_socket_clone4
     );
 
     let success_response = || -> Response<String> { Response::new("ok👍".to_string()) };
@@ -45,6 +46,24 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
             Box::new(move |_request| {
                 let imu_socket = Arc::clone(&imu_socket_clone1);
                 Box::pin(async move { Response::new(imu_socket.get_device_info()) })
+            }),
+        )
+        .await
+    {
+        warn!("add api failed: {}", e);
+    }
+
+    // Get protobuf schema (text/plain)
+    if let Err(e) = API_REGISTER
+        .add_api(
+            ApiRoute {
+                path: format!("/{}/schema", imu_socket.id),
+                method: Method::GET,
+                description: format!("{} Get IMU data protobuf schema", Emoji::INFO),
+            },
+            Box::new(move |_request| {
+                let imu_socket = Arc::clone(&imu_socket_clone4);
+                Box::pin(async move { Response::new(imu_socket.get_schema()) })
             }),
         )
         .await
