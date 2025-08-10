@@ -566,11 +566,11 @@
 #define LV_ATTRIBUTE_EXTERN_DATA
 
 /** Use `float` as `lv_value_precise_t` */
-#define LV_USE_FLOAT            0
+#define LV_USE_FLOAT            1
 
 /** Enable matrix support
  *  - Requires `LV_USE_FLOAT = 1` */
-#define LV_USE_MATRIX           0
+#define LV_USE_MATRIX           1
 
 /** Include `lvgl_private.h` in `lvgl.h` to access internal data and functions by default */
 #ifndef LV_USE_PRIVATE_API
@@ -966,7 +966,7 @@
 
 /** Enable Vector Graphic APIs
  *  - Requires `LV_USE_MATRIX = 1` */
-#define LV_USE_VECTOR_GRAPHIC  0
+#define LV_USE_VECTOR_GRAPHIC  1
 
 /** Enable ThorVG (vector graphics library) from the src/libs folder */
 #define LV_USE_THORVG_INTERNAL 0
@@ -1342,42 +1342,42 @@
 
     /** Render test for each primitive.
      *  - Requires at least 480x272 display. */
-    #define LV_USE_DEMO_RENDER 0
+    #define LV_USE_DEMO_RENDER 1
     
     /** Stress test for LVGL */
     #define LV_USE_DEMO_STRESS 1
     
     /** Music player demo */
-    #define LV_USE_DEMO_MUSIC 0
+    #define LV_USE_DEMO_MUSIC 1
     #if LV_USE_DEMO_MUSIC
         #define LV_DEMO_MUSIC_SQUARE    0
         #define LV_DEMO_MUSIC_LANDSCAPE 0
         #define LV_DEMO_MUSIC_ROUND     0
         #define LV_DEMO_MUSIC_LARGE     0
-        #define LV_DEMO_MUSIC_AUTO_PLAY 0
+        #define LV_DEMO_MUSIC_AUTO_PLAY 1
     #endif
     
     /** Vector graphic demo */
-    #define LV_USE_DEMO_VECTOR_GRAPHIC  0
+    #define LV_USE_DEMO_VECTOR_GRAPHIC  1
     
     /*---------------------------
      * Demos from lvgl/lv_demos
       ---------------------------*/
     
     /** Flex layout demo */
-    #define LV_USE_DEMO_FLEX_LAYOUT     0
+    #define LV_USE_DEMO_FLEX_LAYOUT     1
     
     /** Smart-phone like multi-language demo */
-    #define LV_USE_DEMO_MULTILANG       0
+    #define LV_USE_DEMO_MULTILANG       1
     
     /** Widget transformation demo */
-    #define LV_USE_DEMO_TRANSFORM       0
+    #define LV_USE_DEMO_TRANSFORM       1
     
     /** Demonstrate scroll settings */
-    #define LV_USE_DEMO_SCROLL          0
+    #define LV_USE_DEMO_SCROLL          1
     
     /*E-bike demo with Lottie animations (if LV_USE_LOTTIE is enabled)*/
-    #define LV_USE_DEMO_EBIKE           0
+    #define LV_USE_DEMO_EBIKE           1
     #if LV_USE_DEMO_EBIKE
         #define LV_DEMO_EBIKE_PORTRAIT  0    /*0: for 480x270..480x320, 1: for 480x800..720x1280*/
     #endif
@@ -1386,7 +1386,7 @@
     #define LV_USE_DEMO_HIGH_RES        0
     
     /* Smart watch demo */
-    #define LV_USE_DEMO_SMARTWATCH      0
+    #define LV_USE_DEMO_SMARTWATCH      1
 #endif /* LV_BUILD_DEMOS */ 
 
 /*--END OF LV_CONF_H--*/
