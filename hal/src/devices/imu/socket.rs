@@ -1,9 +1,12 @@
 use crate::common::Emoji;
-use crate::devices::imu::Imu;
+use crate::devices::imu::{Imu, ImuData};
+use ahrs::{Ahrs, Madgwick};
 use log::{debug, error, warn};
+use nalgebra::Vector3;
 use prost::Message;
 use regex::Regex;
 use serde::Serialize;
+use std::f64;
 use std::io;
 use std::sync::{
     Arc,
@@ -158,7 +161,38 @@ impl ImuSocket {
 
         task::spawn(async move {
             let sample_rate = imu.sample_rate();
-            let mut interval = time::interval(Duration::from_millis(1000 / sample_rate as u64));
+            let interval_ms = 1000 / sample_rate as u64;
+            let interval_s = 1.0 / sample_rate as f64;
+            let mut interval = time::interval(Duration::from_millis(interval_ms));
+
+            // Orientation estimation using Madgwick filter
+            let mut ahrs = Madgwick::new(interval_s, 0.3);
+            let mut update_orientation = |imu_data: &ImuData| -> ([f32; 4], [f32; 3]) {
+                // radians/s
+                let gyroscope = Vector3::new(
+                    imu_data.gyro[0] as f64,
+                    imu_data.gyro[1] as f64,
+                    imu_data.gyro[2] as f64,
+                );
+                let accelerometer = Vector3::new(
+                    imu_data.accel[0] as f64,
+                    imu_data.accel[1] as f64,
+                    imu_data.accel[2] as f64,
+                );
+
+                let quat = ahrs.update_imu(&gyroscope, &accelerometer).unwrap();
+                let (roll, pitch, yaw) = quat.euler_angles();
+
+                let quaternion = [
+                    quat.coords[0] as f32,
+                    quat.coords[1] as f32,
+                    quat.coords[2] as f32,
+                    quat.coords[3] as f32,
+                ];
+                let euler_angles = [roll as f32, pitch as f32, yaw as f32];
+
+                (quaternion, euler_angles)
+            };
 
             debug!("imu update task started for: {} in {}Hz", id, sample_rate);
 
@@ -174,7 +208,13 @@ impl ImuSocket {
                         }
 
                         // Read IMU data
-                        let imu_data = imu.imu_data();
+                        let mut imu_data = imu.imu_data();
+
+                        // Update orientation
+                        let (quaternion, euler_angles) = update_orientation(&mut imu_data);
+                        imu_data.quaternion = quaternion;
+                        imu_data.euler_angles = euler_angles;
+
                         debug!("{} get imu data: {:#?}", id, imu_data);
 
                         // Convert to protobuf message

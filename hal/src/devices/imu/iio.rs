@@ -229,6 +229,8 @@ impl Imu for ImuFromIio {
             gyro: [gyro_x, gyro_y, gyro_z],
             mag: [mag_x, mag_y, mag_z],
             temp,
+            quaternion: [0.0, 0.0, 0.0, 0.0],
+            euler_angles: [0.0, 0.0, 0.0],
         }
     }
 

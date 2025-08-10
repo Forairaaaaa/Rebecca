@@ -54,7 +54,7 @@ impl ApiRegister {
             ApiRoute {
                 path: "/apis".to_string(),
                 method: Method::GET,
-                description: format!("{} List all available APIs", Emoji::APIS),
+                description: format!("{} List all available APIs.", Emoji::APIS),
             },
             Box::new(move |_request| {
                 Box::pin(async move {
@@ -70,7 +70,7 @@ impl ApiRegister {
             ApiRoute {
                 path: "/devices".to_string(),
                 method: Method::GET,
-                description: format!("{} List all available devices", Emoji::DEVICES),
+                description: format!("{} List all available devices.", Emoji::DEVICES),
             },
             Box::new(move |_request| {
                 Box::pin(async move {
