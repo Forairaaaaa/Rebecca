@@ -31,7 +31,8 @@ async fn handle_request(
 /// * `shutdown_notify` - A notify clone for shutdown signal
 /// # Returns
 /// A `task::JoinHandle` that can be used to wait for the server to shutdown
-pub fn start_server(host: String, port: u16, shutdown_notify: Arc<Notify>) -> task::JoinHandle<()> {
+pub fn start_server(host: &str, port: u16, shutdown_notify: Arc<Notify>) -> task::JoinHandle<()> {
+    let host = host.to_string();
     task::spawn(async move {
         let ip = IpAddr::from_str(&host).unwrap_or(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)));
         let addr = SocketAddr::new(ip, port);

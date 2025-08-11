@@ -58,7 +58,7 @@ impl SocketCoverScreen {
 
         let device_info = get_device_info(name, host, port).await?;
 
-        let socket = create_socket(device_info.frame_buffer_port).await?;
+        let socket = create_socket(host, device_info.frame_buffer_port).await?;
 
         let frame_buffer = create_frame_buffer(&device_info);
 
@@ -95,10 +95,10 @@ async fn get_device_info(name: &str, host: &str, port: u16) -> io::Result<Device
     Ok(device_info)
 }
 
-async fn create_socket(port: u16) -> io::Result<ReqSocket> {
+async fn create_socket(host: &str, port: u16) -> io::Result<ReqSocket> {
     let mut socket = zeromq::ReqSocket::new();
     socket
-        .connect(&format!("tcp://127.0.0.1:{port}"))
+        .connect(&format!("tcp://{host}:{port}"))
         .await
         .expect("failed to connect");
     info!("connected to socket port: {port}");

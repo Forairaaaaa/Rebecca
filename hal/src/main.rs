@@ -42,20 +42,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut tasks: Vec<JoinHandle<()>> = Vec::new();
 
     // Start screen service
-    match start_screen_service(args.host.clone(), shutdown_notify.clone()).await {
+    match start_screen_service(args.host.as_str(), shutdown_notify.clone()).await {
         Ok(screen_handle) => tasks.push(screen_handle),
         Err(e) => error!("failed to start screen service: {}", e),
     }
 
     // Start IMU service
-    match start_imu_service(args.host.clone(), shutdown_notify.clone()).await {
+    match start_imu_service(args.host.as_str(), shutdown_notify.clone()).await {
         Ok(imu_handle) => tasks.push(imu_handle),
         Err(e) => error!("failed to start imu service: {}", e),
     }
 
     // Start HTTP server
     tasks.push(server::start_server(
-        args.host.clone(),
+        args.host.as_str(),
         args.port,
         shutdown_notify.clone(),
     ));

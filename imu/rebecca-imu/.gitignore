@@ -1,0 +1,15 @@
+# Rust
+/target/
+Cargo.lock
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Operating System files
+.directory
+
+src/imu_data.proto
