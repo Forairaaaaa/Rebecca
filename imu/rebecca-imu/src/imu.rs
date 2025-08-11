@@ -1,7 +1,10 @@
-use log::{debug, info};
+use log::{debug, error, info};
+use prost::Message;
 use serde::{Deserialize, Serialize};
 use std::io;
-use zeromq::{Socket, SubSocket};
+use zeromq::{Socket, SocketRecv, SubSocket};
+
+include!(concat!(env!("OUT_DIR"), "/_.rs"));
 
 /// List all available IMUs
 pub async fn list_imu(host: &str, port: u16) -> io::Result<Vec<String>> {
@@ -39,7 +42,6 @@ struct DeviceInfo {
 }
 
 pub struct ImuSocket {
-    device_info: DeviceInfo,
     socket: SubSocket,
 }
 
@@ -51,15 +53,34 @@ impl ImuSocket {
 
         let socket = create_socket(host, device_info.imu_data_port).await?;
 
-        Ok(Self {
-            device_info,
-            socket,
-        })
+        Ok(Self { socket })
     }
 
     pub async fn listen(&mut self) -> Option<()> {
         loop {
-            // ...
+            match self.socket.recv().await {
+                Ok(msg) => {
+                    if let Some(data) = msg.get(0) {
+                        if let Ok(imu_data) = ImuDataProto::decode(data.clone()) {
+                            debug!("get imu data: {:#?}", imu_data);
+
+                            // Output in json to stdout
+                            if let Ok(json) = serde_json::to_string(&imu_data) {
+                                println!("{}", json);
+                            } else {
+                                error!("imu data to json failed");
+                            }
+                        } else {
+                            error!("imu data decode failed");
+                        }
+                    } else {
+                        error!("ZMQ get msg error");
+                    };
+                }
+                Err(e) => {
+                    error!("ZMQ recv error: {:?}", e);
+                }
+            }
         }
     }
 }
@@ -90,6 +111,8 @@ async fn get_device_info(device_id: &str, host: &str, port: u16) -> io::Result<D
 }
 
 async fn create_socket(host: &str, port: u16) -> io::Result<SubSocket> {
+    info!("create zmq socket: {host}:{port}");
+
     let mut socket = SubSocket::new();
     let endpoint = format!("tcp://{}:{}", host, port);
     socket

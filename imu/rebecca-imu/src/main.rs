@@ -4,8 +4,7 @@ use clap::Parser;
 use colored::Colorize;
 use env_logger::Env;
 use log::{debug, error, info};
-use std::sync::Arc;
-use tokio::{signal, sync::Notify};
+use tokio::signal;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = "A bridge to get IMU data easily")]
@@ -34,7 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(Env::default().default_filter_or(if args.verbose {
         "debug"
     } else {
-        "info"
+        "warn"
     }))
     .init();
 
@@ -55,6 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut imu_socket = imu::ImuSocket::new(&args.imu.unwrap(), &args.host, args.port).await?;
 
     // Wait for signal
+    info!("start to listen imu data");
     let mut sigterm = signal::unix::signal(signal::unix::SignalKind::terminate()).unwrap();
     tokio::select! {
         _ = signal::ctrl_c() => {

@@ -11,3 +11,5 @@ Thumbs.db
 
 # Operating System files
 .directory
+
+src/imu_data.proto
