@@ -12,7 +12,11 @@ use tokio::{signal, sync::Notify, task::JoinHandle};
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Port to listen on
+    /// Host for http server and ZMQ socket to bind to
+    #[arg(long, default_value = "127.0.0.1")]
+    host: String,
+
+    /// Port for http server to listen on
     #[arg(short, long, default_value_t = 12580)]
     port: u16,
 
@@ -50,7 +54,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Start HTTP server
-    tasks.push(server::start_server(args.port, shutdown_notify.clone()));
+    tasks.push(server::start_server(
+        args.host.clone(),
+        args.port,
+        shutdown_notify.clone(),
+    ));
 
     // Wait for signal
     let mut sigterm = signal::unix::signal(signal::unix::SignalKind::terminate()).unwrap();

@@ -6,7 +6,8 @@ use hyper_util::rt::TokioIo;
 use hyper_util::server::conn::auto;
 use log::{error, info};
 use std::convert::Infallible;
-use std::net::SocketAddr;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::str::FromStr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tokio::{sync::Notify, task};
@@ -25,14 +26,15 @@ async fn handle_request(
 
 /// Start a http server to handle hal request
 /// # Arguments
+/// * `host` - The host to listen on
 /// * `port` - The port to listen on
-/// * `device_infos` - A vector of available device infos
 /// * `shutdown_notify` - A notify clone for shutdown signal
 /// # Returns
 /// A `task::JoinHandle` that can be used to wait for the server to shutdown
-pub fn start_server(port: u16, shutdown_notify: Arc<Notify>) -> task::JoinHandle<()> {
+pub fn start_server(host: String, port: u16, shutdown_notify: Arc<Notify>) -> task::JoinHandle<()> {
     task::spawn(async move {
-        let addr = SocketAddr::from(([127, 0, 0, 1], port));
+        let ip = IpAddr::from_str(&host).unwrap_or(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)));
+        let addr = SocketAddr::new(ip, port);
         let listener = match TcpListener::bind(addr).await {
             Ok(listener) => listener,
             Err(e) => {
