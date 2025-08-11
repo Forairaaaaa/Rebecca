@@ -1,6 +1,6 @@
 # 🧭 Rebecca IMU
 
-一个用于快速获取 IMU 数据的便利工具喵～
+一个可以快速获取 IMU 数据的便利工具喵～
 
 ## 📦 安装
 
@@ -33,7 +33,7 @@ rebecca-imu imu0 info
 
 会显示设备的详细信息喵：
 
-```json
+```shell
 DeviceInfo {
     device_type: "mpu6500",
     status: "idle",
@@ -67,13 +67,11 @@ rebecca-imu imu0 read
 
 会以 `JSON` 打印收到的 IMU 数据喵
 
-#### 配合 `jq` 使用：
-
-**只打印欧拉角：**
+**配合 `jq` 使用，只打印欧拉角：**
 
 `rebecca-imu imu0 read | jq '{euler_angles}'`
 
-```json
+```shell
 ...
 {
   "euler_angles": [
@@ -101,5 +99,5 @@ rebecca-imu --help
 
 ---
 
-*有了这个工具🪄，只要是可以执行系统命令的程序，都可以读取 IMU 数据了喵* 🐾
+*有了这个工具🪄，只要是可以执行系统命令的程序，都可以轻松读取 IMU 数据了喵* 🐾
 
