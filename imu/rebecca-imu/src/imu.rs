@@ -32,8 +32,84 @@ pub async fn list_imu(host: &str, port: u16) -> io::Result<Vec<String>> {
     Ok(devices)
 }
 
+/// Get device info
+pub async fn get_device_info(device_id: &str, host: &str, port: u16) -> io::Result<DeviceInfo> {
+    let client = reqwest::Client::new();
+    let url = format!("http://{host}:{port}/{device_id}/info");
+
+    let response =
+        client.get(&url).send().await.map_err(|e| {
+            io::Error::new(io::ErrorKind::Other, format!("HTTP request failed: {}", e))
+        })?;
+
+    if !response.status().is_success() {
+        return Err(io::Error::new(
+            io::ErrorKind::Other,
+            format!("HTTP request failed with status: {}", response.status()),
+        ));
+    }
+
+    let device_info: DeviceInfo = response.json().await.map_err(|e| {
+        io::Error::new(io::ErrorKind::Other, format!("Failed to parse JSON: {}", e))
+    })?;
+
+    info!("get device info: {:#?}", device_info);
+
+    Ok(device_info)
+}
+
+/// Start imu data publishing
+pub async fn start_imu_data_publishing(device_id: &str, host: &str, port: u16) -> io::Result<()> {
+    let client = reqwest::Client::new();
+    let url = format!("http://{host}:{port}/{device_id}/start");
+
+    let response =
+        client.get(&url).send().await.map_err(|e| {
+            io::Error::new(io::ErrorKind::Other, format!("HTTP request failed: {}", e))
+        })?;
+
+    if !response.status().is_success() {
+        return Err(io::Error::new(
+            io::ErrorKind::Other,
+            format!("HTTP request failed with status: {}", response.status()),
+        ));
+    }
+
+    let text = response.text().await.unwrap();
+
+    info!("start imu data publishing: {:#?}", text);
+    println!("{:#?}", text);
+
+    Ok(())
+}
+
+/// Stop imu data publishing
+pub async fn stop_imu_data_publishing(device_id: &str, host: &str, port: u16) -> io::Result<()> {
+    let client = reqwest::Client::new();
+    let url = format!("http://{host}:{port}/{device_id}/stop");
+
+    let response =
+        client.get(&url).send().await.map_err(|e| {
+            io::Error::new(io::ErrorKind::Other, format!("HTTP request failed: {}", e))
+        })?;
+
+    if !response.status().is_success() {
+        return Err(io::Error::new(
+            io::ErrorKind::Other,
+            format!("HTTP request failed with status: {}", response.status()),
+        ));
+    }
+
+    let text = response.text().await.unwrap();
+
+    info!("stop imu data publishing: {:#?}", text);
+    println!("{:#?}", text);
+
+    Ok(())
+}
+
 #[derive(Debug, Serialize, Deserialize)]
-struct DeviceInfo {
+pub struct DeviceInfo {
     device_type: String,
     status: String,
     sample_rate: u32,
@@ -83,31 +159,6 @@ impl ImuSocket {
             }
         }
     }
-}
-
-async fn get_device_info(device_id: &str, host: &str, port: u16) -> io::Result<DeviceInfo> {
-    let client = reqwest::Client::new();
-    let url = format!("http://{host}:{port}/{device_id}/info");
-
-    let response =
-        client.get(&url).send().await.map_err(|e| {
-            io::Error::new(io::ErrorKind::Other, format!("HTTP request failed: {}", e))
-        })?;
-
-    if !response.status().is_success() {
-        return Err(io::Error::new(
-            io::ErrorKind::Other,
-            format!("HTTP request failed with status: {}", response.status()),
-        ));
-    }
-
-    let device_info: DeviceInfo = response.json().await.map_err(|e| {
-        io::Error::new(io::ErrorKind::Other, format!("Failed to parse JSON: {}", e))
-    })?;
-
-    info!("get device info: {:#?}", device_info);
-
-    Ok(device_info)
 }
 
 async fn create_socket(host: &str, port: u16) -> io::Result<SubSocket> {

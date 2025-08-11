@@ -1,10 +1,18 @@
 mod imu;
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use colored::Colorize;
 use env_logger::Env;
 use log::{debug, error, info};
 use tokio::signal;
+
+#[derive(Debug, Clone, ValueEnum)]
+enum Command {
+    Info,
+    Start,
+    Stop,
+    Read,
+}
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = "A bridge to get IMU data easily")]
@@ -23,6 +31,10 @@ struct Args {
     /// Verbose mode
     #[arg(short, long, default_value_t = false)]
     verbose: bool,
+
+    /// Command to execute
+    #[arg(default_value = "info")]
+    command: Command,
 }
 
 #[tokio::main]
@@ -48,6 +60,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         println!();
         return Ok(());
+    }
+
+    match args.command {
+        Command::Info => {
+            let device_info =
+                imu::get_device_info(&args.imu.unwrap(), &args.host, args.port).await?;
+            println!("{:#?}", device_info);
+            return Ok(());
+        }
+        Command::Start => {
+            imu::start_imu_data_publishing(&args.imu.unwrap(), &args.host, args.port).await?;
+            return Ok(());
+        }
+        Command::Stop => {
+            imu::stop_imu_data_publishing(&args.imu.unwrap(), &args.host, args.port).await?;
+            return Ok(());
+        }
+        Command::Read => {}
     }
 
     // Create IMU socket
