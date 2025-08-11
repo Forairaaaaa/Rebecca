@@ -11,11 +11,12 @@ use tokio::{sync::Notify, task};
 
 /// Start screen service to handle cover screen devices
 /// # Arguments
-/// * `device_infos` - A mutable reference to a vector of `DeviceInfo` for appending new screen devices
+/// * `host` - The host for ZMQ socket to bind to
 /// * `shutdown_notify` - A notify clone for shutdown signal
 /// # Returns
 /// A `task::JoinHandle` that can be used to wait for the screen service to shutdown
 pub async fn start_screen_service(
+    host: String,
     shutdown_notify: Arc<Notify>,
 ) -> io::Result<task::JoinHandle<()>> {
     // Create screens
@@ -24,7 +25,8 @@ pub async fn start_screen_service(
 
     // Create screen sockets
     for (i, screen) in screens.into_iter().enumerate() {
-        let screen_socket = ScreenSocket::new(Box::new(screen), format!("screen{}", i)).await?;
+        let screen_socket =
+            ScreenSocket::new(Box::new(screen), format!("screen{}", i), host.clone()).await?;
         let screen_info = screen_socket.get_device_info();
 
         // Add device to device list

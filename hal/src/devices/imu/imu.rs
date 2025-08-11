@@ -138,7 +138,16 @@ fn on_imu_data(_imu_data: &mut ImuData) {
     // Not adjustment needed
 }
 
-pub async fn start_imu_service(shutdown_notify: Arc<Notify>) -> io::Result<task::JoinHandle<()>> {
+/// Start IMU service
+/// # Arguments
+/// * `host` - The host for ZMQ socket to bind to
+/// * `shutdown_notify` - A notify clone for shutdown signal
+/// # Returns
+/// A `task::JoinHandle` that can be used to wait for the service to shutdown
+pub async fn start_imu_service(
+    host: String,
+    shutdown_notify: Arc<Notify>,
+) -> io::Result<task::JoinHandle<()>> {
     // Try to create IMU from IIO
     let mpu6500_iio = ImuFromIio::new("mpu6500".to_string()).ok_or(io::Error::new(
         io::ErrorKind::Other,
@@ -150,6 +159,7 @@ pub async fn start_imu_service(shutdown_notify: Arc<Notify>) -> io::Result<task:
         ImuSocket::new(
             Box::new(mpu6500_iio),
             "imu0".to_string(),
+            host,
             Arc::new(on_imu_data),
         )
         .await?,

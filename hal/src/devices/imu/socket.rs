@@ -1,7 +1,7 @@
 use crate::common::Emoji;
 use crate::devices::imu::{Imu, ImuData};
 use ahrs::{Ahrs, Madgwick};
-use log::{debug, error, warn};
+use log::{debug, error, info, warn};
 use nalgebra::Vector3;
 use prost::Message;
 use regex::Regex;
@@ -76,14 +76,15 @@ impl ImuSocket {
     pub async fn new(
         imu: Box<dyn Imu + Send + Sync>,
         id: String,
+        host: String,
         on_imu_data: OnImuData,
     ) -> io::Result<Self> {
-        debug!("creating imu socket for device: {}", id);
+        debug!(target: &id, "creating imu socket");
 
         // Create ZMQ PUB socket
         let mut imu_data_socket = zeromq::PubSocket::new();
         let ep = imu_data_socket
-            .bind("tcp://127.0.0.1:0")
+            .bind(format!("tcp://{}:0", host).as_str())
             .await
             .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("zmq bind failed: {}", e)))?
             .to_string();
@@ -99,7 +100,7 @@ impl ImuSocket {
                 0
             });
 
-        debug!("imu socket bound to port: {}", imu_data_port);
+        debug!(target: &id, "imu data socket bound to: tcp://{}:{}", host, imu_data_port);
 
         Ok(Self {
             id,

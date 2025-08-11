@@ -27,11 +27,15 @@ struct ScreenSocketInfo {
 }
 
 impl ScreenSocket {
-    pub async fn new(screen: Box<dyn Screen + Send + Sync>, id: String) -> io::Result<Self> {
+    pub async fn new(
+        screen: Box<dyn Screen + Send + Sync>,
+        id: String,
+        host: String,
+    ) -> io::Result<Self> {
         // Create frame buffer zmq socket
         let mut frame_buffer_socket = zeromq::RepSocket::new();
         let ep = frame_buffer_socket
-            .bind("tcp://127.0.0.1:0")
+            .bind(format!("tcp://{}:0", host).as_str())
             .await
             .unwrap()
             .to_string();
