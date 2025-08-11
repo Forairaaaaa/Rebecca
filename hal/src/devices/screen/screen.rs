@@ -3,7 +3,7 @@ use crate::devices::{
     API_REGISTER, ApiRoute,
     screen::{FrameBufferScreen, ScreenSocket},
 };
-use hyper::{Method, Response};
+use hyper::{Method, Response, header::CONTENT_TYPE};
 use log::{error, info, warn};
 use std::io;
 use std::sync::Arc;
@@ -40,7 +40,12 @@ pub async fn start_screen_service(
                 },
                 Box::new(move |_request| {
                     let screen_info = screen_info.clone();
-                    Box::pin(async move { Response::new(screen_info) })
+                    Box::pin(async move {
+                        Response::builder()
+                            .header(CONTENT_TYPE, "application/json; charset=utf-8")
+                            .body(screen_info)
+                            .unwrap()
+                    })
                 }),
             )
             .await

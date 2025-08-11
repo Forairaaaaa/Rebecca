@@ -1,7 +1,7 @@
 /// 全局单例 API 注册表，用于注册设备 API，以及给 server 提供路由和回调
 use crate::common::Emoji;
 use derivative::Derivative;
-use hyper::{Method, Request, Response, StatusCode};
+use hyper::{Method, Request, Response, StatusCode, header::CONTENT_TYPE};
 use indexmap::IndexMap;
 use log::{debug, error};
 use once_cell::sync::Lazy;
@@ -61,7 +61,10 @@ impl ApiRegister {
                     let api_routes = API_REGISTER.get_all_api_routes().await;
                     let body =
                         serde_json::to_string_pretty(&api_routes).unwrap_or("wtf?🤡".to_string());
-                    Response::new(body)
+                    Response::builder()
+                        .header(CONTENT_TYPE, "application/json; charset=utf-8")
+                        .body(body)
+                        .unwrap()
                 })
             }),
         );
@@ -77,7 +80,10 @@ impl ApiRegister {
                     let device_list = API_REGISTER.get_device_list().await;
                     let body =
                         serde_json::to_string_pretty(&device_list).unwrap_or("wtf?🤡".to_string());
-                    Response::new(body)
+                    Response::builder()
+                        .header(CONTENT_TYPE, "application/json; charset=utf-8")
+                        .body(body)
+                        .unwrap()
                 })
             }),
         );
@@ -121,6 +127,7 @@ impl ApiRegister {
             debug!("api route: {:?} not found", route);
             Response::builder()
                 .status(StatusCode::NOT_FOUND)
+                .header(CONTENT_TYPE, "text/plain; charset=utf-8")
                 .body("Not Found".to_string())
                 .unwrap()
         }

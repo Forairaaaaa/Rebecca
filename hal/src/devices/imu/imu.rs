@@ -1,7 +1,7 @@
 use crate::common::Emoji;
 use crate::devices::imu::{ImuFromIio, socket::ImuSocket, types::ImuData};
 use crate::devices::{API_REGISTER, ApiRoute};
-use hyper::{Method, Response, StatusCode};
+use hyper::{Method, Response, StatusCode, header::CONTENT_TYPE};
 use log::{info, warn};
 use std::io;
 use std::sync::Arc;
@@ -24,10 +24,16 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
         imu_socket_clone4
     );
 
-    let success_response = || -> Response<String> { Response::new("ok👍".to_string()) };
+    let success_response = || -> Response<String> {
+        Response::builder()
+            .header(CONTENT_TYPE, "text/plain; charset=utf-8")
+            .body("ok👍".to_string())
+            .unwrap()
+    };
     let error_response = |e: io::Error| {
         Response::builder()
             .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .header(CONTENT_TYPE, "text/plain; charset=utf-8")
             .body(e.to_string())
             .unwrap()
     };
@@ -45,7 +51,12 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
             },
             Box::new(move |_request| {
                 let imu_socket = Arc::clone(&imu_socket_clone1);
-                Box::pin(async move { Response::new(imu_socket.get_device_info()) })
+                Box::pin(async move {
+                    Response::builder()
+                        .header(CONTENT_TYPE, "application/json; charset=utf-8")
+                        .body(imu_socket.get_device_info())
+                        .unwrap()
+                })
             }),
         )
         .await
@@ -63,7 +74,12 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
             },
             Box::new(move |_request| {
                 let imu_socket = Arc::clone(&imu_socket_clone4);
-                Box::pin(async move { Response::new(imu_socket.get_schema()) })
+                Box::pin(async move {
+                    Response::builder()
+                        .header(CONTENT_TYPE, "text/plain; charset=utf-8")
+                        .body(imu_socket.get_schema())
+                        .unwrap()
+                })
             }),
         )
         .await
