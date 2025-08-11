@@ -35,6 +35,10 @@ struct Args {
     #[arg(short, long, default_value_t = false)]
     verbose: bool,
 
+    /// Rebecca-HAL server host
+    #[arg(long, default_value = "localhost")]
+    host: String,
+
     /// Rebecca-HAL server port
     #[arg(short, long, default_value_t = 12580)]
     port: u16,
@@ -63,7 +67,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // If no screen provided
     if args.screen.is_none() {
-        let screens = SocketCoverScreen::list_screens(args.port).await?;
+        let screens = SocketCoverScreen::list_screens(&args.host, args.port).await?;
         print!("🖥️ available screens: ");
         for screen in screens {
             print!("{} ", screen.green());
@@ -73,7 +77,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // Create screen
-    let mut screen = SocketCoverScreen::new(&args.screen.unwrap(), args.port)
+    let mut screen = SocketCoverScreen::new(&args.screen.unwrap(), &args.host, args.port)
         .await
         .map_err(|e| {
             error!("failed to create screen: {}", e);

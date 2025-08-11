@@ -29,9 +29,9 @@ struct PushFrameResponse {
 }
 
 impl SocketCoverScreen {
-    pub async fn list_screens(port: u16) -> io::Result<Vec<String>> {
+    pub async fn list_screens(host: &str, port: u16) -> io::Result<Vec<String>> {
         let client = reqwest::Client::new();
-        let url = format!("http://127.0.0.1:{}/devices", port);
+        let url = format!("http://{host}:{port}/devices");
 
         let response = client.get(&url).send().await.map_err(|e| {
             io::Error::new(io::ErrorKind::Other, format!("HTTP request failed: {}", e))
@@ -53,10 +53,10 @@ impl SocketCoverScreen {
         Ok(devices)
     }
 
-    pub async fn new(name: &str, port: u16) -> io::Result<Self> {
+    pub async fn new(name: &str, host: &str, port: u16) -> io::Result<Self> {
         info!("create cover screen: {name}");
 
-        let device_info = get_device_info(name, port).await?;
+        let device_info = get_device_info(name, host, port).await?;
 
         let socket = create_socket(device_info.frame_buffer_port).await?;
 
@@ -70,9 +70,9 @@ impl SocketCoverScreen {
     }
 }
 
-async fn get_device_info(name: &str, port: u16) -> io::Result<DeviceInfo> {
+async fn get_device_info(name: &str, host: &str, port: u16) -> io::Result<DeviceInfo> {
     let client = reqwest::Client::new();
-    let url = format!("http://127.0.0.1:{}/{}/info", port, name);
+    let url = format!("http://{host}:{port}/{name}/info");
 
     let response =
         client.get(&url).send().await.map_err(|e| {
