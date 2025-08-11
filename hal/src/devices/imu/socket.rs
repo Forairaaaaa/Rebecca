@@ -76,7 +76,7 @@ impl ImuSocket {
     pub async fn new(
         imu: Box<dyn Imu + Send + Sync>,
         id: String,
-        host: String,
+        host: &str,
         on_imu_data: OnImuData,
     ) -> io::Result<Self> {
         debug!(target: &id, "creating imu socket");

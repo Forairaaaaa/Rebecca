@@ -30,7 +30,7 @@ impl ScreenSocket {
     pub async fn new(
         screen: Box<dyn Screen + Send + Sync>,
         id: String,
-        host: String,
+        host: &str,
     ) -> io::Result<Self> {
         // Create frame buffer zmq socket
         let mut frame_buffer_socket = zeromq::RepSocket::new();

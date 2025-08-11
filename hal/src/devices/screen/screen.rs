@@ -16,7 +16,7 @@ use tokio::{sync::Notify, task};
 /// # Returns
 /// A `task::JoinHandle` that can be used to wait for the screen service to shutdown
 pub async fn start_screen_service(
-    host: String,
+    host: &str,
     shutdown_notify: Arc<Notify>,
 ) -> io::Result<task::JoinHandle<()>> {
     // Create screens
@@ -26,7 +26,7 @@ pub async fn start_screen_service(
     // Create screen sockets
     for (i, screen) in screens.into_iter().enumerate() {
         let screen_socket =
-            ScreenSocket::new(Box::new(screen), format!("screen{}", i), host.clone()).await?;
+            ScreenSocket::new(Box::new(screen), format!("screen{}", i), host).await?;
         let screen_info = screen_socket.get_device_info();
 
         // Add device to device list

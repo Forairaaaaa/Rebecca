@@ -145,7 +145,7 @@ fn on_imu_data(_imu_data: &mut ImuData) {
 /// # Returns
 /// A `task::JoinHandle` that can be used to wait for the service to shutdown
 pub async fn start_imu_service(
-    host: String,
+    host: &str,
     shutdown_notify: Arc<Notify>,
 ) -> io::Result<task::JoinHandle<()>> {
     // Try to create IMU from IIO
