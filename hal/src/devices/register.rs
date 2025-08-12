@@ -88,6 +88,22 @@ impl ApiRegister {
             }),
         );
 
+        api_map.insert(
+            ApiRoute {
+                path: "/version".to_string(),
+                method: Method::GET,
+                description: format!("{} Get Rebecca HAL version.", Emoji::VERSION),
+            },
+            Box::new(move |_request| {
+                Box::pin(async move {
+                    Response::builder()
+                        .header(CONTENT_TYPE, "application/plain-text; charset=utf-8")
+                        .body(format!("{}", env!("CARGO_PKG_VERSION")))
+                        .unwrap()
+                })
+            }),
+        );
+
         Self {
             api_map: RwLock::new(api_map),
             device_list: RwLock::new(vec![]),
