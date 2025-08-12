@@ -1,5 +1,5 @@
 use crate::common::Emoji;
-use crate::devices::imu::{IioImu, Imu, ImuData, MockImu, socket::ImuSocket};
+use crate::devices::imu::{IioImu, Imu, MockImu, socket::ImuSocket};
 use crate::devices::{API_REGISTER, ApiRoute};
 use hyper::{Method, Response, StatusCode, header::CONTENT_TYPE};
 use log::{error, info, warn};
@@ -134,10 +134,6 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
     }
 }
 
-fn on_imu_data(_imu_data: &mut ImuData) {
-    // Not adjustment needed
-}
-
 fn add_custom_imus(imus: &mut Vec<Box<dyn Imu + Send + Sync + 'static>>) {
     // Try to create mpu6500 from iio
     if let Some(mpu6500_iio) = IioImu::new("mpu6500") {
@@ -172,8 +168,7 @@ pub async fn start_imu_service(
     // Create imu sockets
     let mut imu_sockets: Vec<Arc<ImuSocket>> = Vec::new();
     for (i, imu) in imus.into_iter().enumerate() {
-        let imu_socket =
-            ImuSocket::new(imu, format!("imu{}", i), host, Arc::new(on_imu_data)).await?;
+        let imu_socket = ImuSocket::new(imu, format!("imu{}", i), host).await?;
 
         let imu_socket = Arc::new(imu_socket);
 
