@@ -16,4 +16,5 @@ impl Emoji {
     pub const STORAGE: &'static str = "📦";
     pub const KEY: &'static str = "🗝️";
     pub const FORMAT: &'static str = "🖊️";
+    pub const VERSION: &'static str = "🏷️";
 }

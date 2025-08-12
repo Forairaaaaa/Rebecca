@@ -1,8 +1,8 @@
 use crate::common::Emoji;
-use crate::devices::imu::{ImuFromIio, socket::ImuSocket, types::ImuData};
+use crate::devices::imu::{IioImu, Imu, MockImu, socket::ImuSocket};
 use crate::devices::{API_REGISTER, ApiRoute};
 use hyper::{Method, Response, StatusCode, header::CONTENT_TYPE};
-use log::{info, warn};
+use log::{error, info, warn};
 use std::io;
 use std::sync::Arc;
 use tokio::{sync::Notify, task};
@@ -134,49 +134,76 @@ async fn register_device(imu_socket: &Arc<ImuSocket>) {
     }
 }
 
-fn on_imu_data(_imu_data: &mut ImuData) {
-    // Not adjustment needed
+fn add_custom_imus(imus: &mut Vec<Box<dyn Imu + Send + Sync + 'static>>) {
+    // Try to create mpu6500 from iio
+    if let Some(mpu6500_iio) = IioImu::new("mpu6500") {
+        imus.push(Box::new(mpu6500_iio));
+    } else {
+        error!("failed to create imu from iio by name: mpu6500");
+        return;
+    }
 }
 
 /// Start IMU service
 /// # Arguments
 /// * `host` - The host for ZMQ socket to bind to
 /// * `shutdown_notify` - A notify clone for shutdown signal
+/// * `mock_imu` - Whether to create mock IMU for api test
 /// # Returns
 /// A `task::JoinHandle` that can be used to wait for the service to shutdown
 pub async fn start_imu_service(
     host: &str,
     shutdown_notify: Arc<Notify>,
+    mock_imu: bool,
 ) -> io::Result<task::JoinHandle<()>> {
-    // Try to create IMU from IIO
-    let mpu6500_iio = ImuFromIio::new("mpu6500".to_string()).ok_or(io::Error::new(
-        io::ErrorKind::Other,
-        "failed to create imu from iio by name: mpu6500",
-    ))?;
+    let mut imus: Vec<Box<dyn Imu + Send + Sync + 'static>> = Vec::new();
 
-    // Create IMU socket
-    let imu_socket = Arc::new(
-        ImuSocket::new(
-            Box::new(mpu6500_iio),
-            "imu0".to_string(),
-            host,
-            Arc::new(on_imu_data),
-        )
-        .await?,
-    );
-    arc_clones!(imu_socket, imu_socket_task);
+    if mock_imu {
+        info!("create mock imu");
+        imus.push(Box::new(MockImu::new()));
+    }
 
-    register_device(&imu_socket).await;
+    add_custom_imus(&mut imus);
 
+    // Create imu sockets
+    let mut imu_sockets: Vec<Arc<ImuSocket>> = Vec::new();
+    for (i, imu) in imus.into_iter().enumerate() {
+        let imu_socket = ImuSocket::new(imu, format!("imu{}", i), host).await?;
+
+        let imu_socket = Arc::new(imu_socket);
+
+        register_device(&imu_socket).await;
+
+        imu_sockets.push(imu_socket);
+    }
+
+    // Start imu service
     let handle = task::spawn(async move {
-        let imu_socket = Arc::clone(&imu_socket_task);
-        tokio::select! {
-            _ = shutdown_notify.notified() => {
-                info!("imu service shutdown...");
-                if let Err(e) = imu_socket.stop().await {
-                    warn!("failed to stop imu socket: {}", e);
+        let mut workers = Vec::new();
+
+        for imu_socket in imu_sockets {
+            let notify = shutdown_notify.clone();
+
+            let worker = task::spawn(async move {
+                let imu_socket = Arc::clone(&imu_socket);
+                tokio::select! {
+                    _ = notify.notified() => {
+                        info!("imu service shutdown...");
+                        if let Err(e) = imu_socket.stop().await {
+                            warn!("failed to stop imu socket: {}", e);
+                        }
+                    }
                 }
-            }
+                info!("imu service shutdown complete");
+            });
+
+            workers.push(worker);
+        }
+
+        for worker in workers {
+            worker.await.unwrap_or_else(|e| {
+                error!("await imu worker error: {}", e);
+            });
         }
 
         info!("imu service shutdown complete");

@@ -1,7 +1,7 @@
 use crate::common::Emoji;
 use crate::devices::imu::{Imu, ImuData};
 use ahrs::{Ahrs, Madgwick};
-use log::{debug, error, info, warn};
+use log::{debug, error, warn};
 use nalgebra::Vector3;
 use prost::Message;
 use regex::Regex;
@@ -49,9 +49,6 @@ message ImuDataProto {
 }
 "#;
 
-// On imu data callback for data's final adjustment before publishing
-pub type OnImuData = Arc<dyn Fn(&mut ImuData) + Send + Sync>;
-
 pub struct ImuSocket {
     pub id: String,
     imu: Arc<dyn Imu + Send + Sync>,
@@ -60,7 +57,6 @@ pub struct ImuSocket {
     is_running: Arc<AtomicBool>,
     update_task_handle: Arc<tokio::sync::Mutex<Option<task::JoinHandle<()>>>>,
     shutdown_notify: Arc<Notify>,
-    on_imu_data: OnImuData,
 }
 
 #[derive(Serialize, Debug)]
@@ -73,12 +69,7 @@ struct ImuSocketInfo {
 }
 
 impl ImuSocket {
-    pub async fn new(
-        imu: Box<dyn Imu + Send + Sync>,
-        id: String,
-        host: &str,
-        on_imu_data: OnImuData,
-    ) -> io::Result<Self> {
+    pub async fn new(imu: Box<dyn Imu + Send + Sync>, id: String, host: &str) -> io::Result<Self> {
         debug!(target: &id, "creating imu socket");
 
         // Create ZMQ PUB socket
@@ -110,7 +101,6 @@ impl ImuSocket {
             is_running: Arc::new(AtomicBool::new(false)),
             update_task_handle: Arc::new(tokio::sync::Mutex::new(None)),
             shutdown_notify: Arc::new(Notify::new()),
-            on_imu_data,
         })
     }
 
@@ -172,7 +162,6 @@ impl ImuSocket {
         let is_running = self.is_running.clone();
         let shutdown_notify = self.shutdown_notify.clone();
         let id = self.id.clone();
-        let on_imu_data = self.on_imu_data.clone();
 
         task::spawn(async move {
             let sample_rate = imu.sample_rate();
@@ -229,9 +218,6 @@ impl ImuSocket {
                         let (quaternion, euler_angles) = update_orientation(&mut imu_data);
                         imu_data.quaternion = quaternion;
                         imu_data.euler_angles = euler_angles;
-
-                        // Invoke on_imu_data callback for user's final adjustment
-                        on_imu_data(&mut imu_data);
 
                         debug!("{} get imu data: {:#?}", id, imu_data);
 
