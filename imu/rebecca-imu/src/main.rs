@@ -85,13 +85,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Wait for signal
     info!("start to listen imu data");
-    let mut sigterm = signal::unix::signal(signal::unix::SignalKind::terminate()).unwrap();
+
     tokio::select! {
         _ = signal::ctrl_c() => {
             info!("received SIGINT signal");
-        }
-        _ = sigterm.recv() => {
-            info!("received SIGTERM signal");
         }
         _ = imu_socket.listen() => {
             error!("imu socket listen error");
