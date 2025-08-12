@@ -4,7 +4,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-pub struct ImuFromIio {
+pub struct IioImu {
     name: String,
     device_path: PathBuf,
     // IIO channel file paths for reading sensor data
@@ -31,8 +31,8 @@ pub struct ImuFromIio {
     sample_rate: u32,
 }
 
-impl ImuFromIio {
-    pub fn new(name: String) -> Option<Self> {
+impl IioImu {
+    pub fn new(name: &str) -> Option<Self> {
         debug!("searching for iio device: {}", name);
 
         // Scan /sys/bus/iio/devices for matching device
@@ -82,8 +82,8 @@ impl ImuFromIio {
             debug!("found matching iio device at: {}", device_path.display());
 
             // Initialize the ImuFromIio instance
-            let mut imu = ImuFromIio {
-                name: name.clone(),
+            let mut imu = IioImu {
+                name: name.to_string(),
                 device_path: device_path.clone(),
                 accel_x_path: None,
                 accel_y_path: None,
@@ -247,7 +247,7 @@ impl ImuFromIio {
     }
 }
 
-impl Imu for ImuFromIio {
+impl Imu for IioImu {
     fn name(&self) -> String {
         self.name.clone()
     }

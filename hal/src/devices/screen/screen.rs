@@ -33,6 +33,7 @@ pub async fn start_screen_service(
 
     // Create mock screens
     if mock_screen {
+        info!("create mock screens");
         screens.push(Box::new(MockScreen::new(320, 240, 16)));
         screens.push(Box::new(MockScreen::new(320, 240, 16)));
     }
