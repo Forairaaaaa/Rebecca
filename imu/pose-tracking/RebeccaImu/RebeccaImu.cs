@@ -96,7 +96,7 @@ public partial class RebeccaImu : Node
             string line;
             while (_running && (line = reader.ReadLine()) != null)
             {
-                GD.Print(line);
+                // GD.Print(line);
                 CallDeferred(nameof(EmitReceivedData), line);
             }
         }
