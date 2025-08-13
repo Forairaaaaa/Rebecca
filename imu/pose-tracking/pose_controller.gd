@@ -1,8 +1,11 @@
 extends CharacterBody3D
 
+# No available yaw in 6dof
+@export var is_6dof: bool = true
+
 
 func _ready() -> void:
-	print("kkk")
+	print("k")
 
 
 func _update_pose(quat: Quaternion):
