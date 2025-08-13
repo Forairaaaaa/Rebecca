@@ -1,5 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://bytx5v67lownk"]
+[gd_scene load_steps=5 format=3 uid="uid://bytx5v67lownk"]
 
+[ext_resource type="PackedScene" uid="uid://cyjeqvjrkhjj7" path="res://RebeccaImu/RebeccaImu.tscn" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://cci0vgktohp0m" path="res://pose_traking.gd" id="1_ig7tw"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_7dm0k"]
@@ -8,7 +9,10 @@
 
 [node name="Node3D" type="Node3D"]
 
+[node name="RebeccaImu" parent="." instance=ExtResource("1_0xm2m")]
+
 [node name="CharacterBody3D" type="CharacterBody3D" parent="."]
+visible = false
 script = ExtResource("1_ig7tw")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D"]
