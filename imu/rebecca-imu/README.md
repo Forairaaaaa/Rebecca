@@ -1,17 +1,6 @@
 # 🧭 Rebecca IMU
 
-一个可以快速获取 IMU 数据的便利工具喵～
-
-## 📦 安装
-
-先获取 proto 格式文件喵，需要 HAL 已经在运行了哦
-```bash
-curl http://localhost:12580/imu0/schema -o src/imu_data.proto
-```
-
-```bash
-cargo install --path .
-```
+用于快速获取 IMU 数据的工具喵～
 
 ## 🎮 使用方法
 
@@ -90,14 +79,18 @@ rebecca-imu imu0 read
 ...
 ```
 
-## ❓ 帮助
+## 📦 安装
 
-更多选项可以查看帮助信息哦：
+要先获取 proto 格式文件喵，需要 HAL 已经在运行了哦
 ```bash
-rebecca-imu --help
+curl http://localhost:12580/imu0/schema -o src/imu_data.proto
+```
+
+```bash
+cargo install --path .
 ```
 
 ---
 
-*有了这个工具🪄，只要是可以执行系统命令的程序，都可以轻松读取 IMU 数据了喵* 🐾
+*有了这个工具🪄，只要能执行系统命令，就可以轻松读取 IMU 数据了喵* 🐾
 
