@@ -3,7 +3,7 @@ mod devices;
 mod server;
 
 use clap::Parser;
-use devices::{start_imu_service, start_screen_service};
+use devices::{start_backlight_service, start_imu_service, start_screen_service};
 use env_logger::Env;
 use log::{error, info};
 use std::sync::Arc;
@@ -31,6 +31,10 @@ struct Args {
     /// Create mock imu for api test
     #[arg(long, default_value_t = false)]
     mock_imu: bool,
+
+    /// Create mock backlight for api test
+    #[arg(long, default_value_t = false)]
+    mock_backlight: bool,
 }
 
 #[tokio::main]
@@ -65,6 +69,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     match start_imu_service(args.host.as_str(), shutdown_notify.clone(), args.mock_imu).await {
         Ok(imu_handle) => tasks.push(imu_handle),
         Err(e) => error!("failed to start imu service: {}", e),
+    }
+
+    // Start backlight service
+    match start_backlight_service(
+        args.host.as_str(),
+        shutdown_notify.clone(),
+        args.mock_backlight,
+    )
+    .await
+    {
+        Ok(backlight_handle) => tasks.push(backlight_handle),
+        Err(e) => error!("failed to start backlight service: {}", e),
     }
 
     // Start HTTP server
