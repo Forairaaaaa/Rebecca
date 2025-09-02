@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://cyjeqvjrkhjj7"]
-
-[ext_resource type="Script" uid="uid://r6k2e1hwpnu8" path="res://RebeccaImu/RebeccaImu.cs" id="1_h5tof"]
-
-[node name="RebeccaImu" type="Node"]
-script = ExtResource("1_h5tof")

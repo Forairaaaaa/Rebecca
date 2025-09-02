@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://bytx5v67lownk"]
 
-[ext_resource type="PackedScene" uid="uid://cyjeqvjrkhjj7" path="res://RebeccaImu/RebeccaImu.tscn" id="1_0xm2m"]
+[ext_resource type="PackedScene" uid="uid://cyjeqvjrkhjj7" path="res://Hal/Hal.tscn" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://cci0vgktohp0m" path="res://pose_controller.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://c407w31cag6ml" path="res://label.gd" id="3_h2yge"]
 
@@ -43,6 +43,3 @@ offset_right = 62.0
 offset_bottom = 45.0
 text = "wtf"
 script = ExtResource("3_h2yge")
-
-[connection signal="ImuDataReceived" from="Model/RebeccaImu" to="Model" method="_on_rebecca_imu_imu_data_received"]
-[connection signal="ImuDataReceived" from="Model/RebeccaImu" to="Label" method="_on_rebecca_imu_imu_data_received"]

@@ -1,11 +1,10 @@
-/// 走 C# 开个读取线程，将收到数据通过 signal 转发到主线程
 using Godot;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
-public partial class RebeccaImu : Node
+public partial class Hal : Node
 {
     [Signal]
     public delegate void ImuDataReceivedEventHandler(string data);
