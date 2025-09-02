@@ -13,7 +13,7 @@ func _update_pose(quat: Quaternion):
 	quaternion = quat.normalized()
 
 
-func _on_rebecca_imu_imu_data_received(data: String) -> void:
+func _on_imu_imu_data_received(data: String) -> void:
 	# print(data)
 	var json = JSON.new()
 	var error = json.parse(data)

@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://cyjeqvjrkhjj7"]
-
-[ext_resource type="Script" uid="uid://r6k2e1hwpnu8" path="res://Hal/Hal.cs" id="1_h5tof"]
-
-[node name="Hal" type="Node"]
-script = ExtResource("1_h5tof")
