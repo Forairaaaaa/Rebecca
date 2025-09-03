@@ -124,4 +124,24 @@ public partial class Imu : Node
 
         _readerThread?.Join();
     }
+
+    public void Cleanup()
+    {
+        StopWroker();
+        StopReading();
+    }
+
+    public override void _ExitTree()
+    {
+        Cleanup();
+    }
+    public override void _Notification(int what)
+    {
+        if (what == NotificationWMCloseRequest)
+        {
+            GetTree().Quit();
+
+            Cleanup();
+        }
+    }
 }

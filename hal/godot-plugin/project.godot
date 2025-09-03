@@ -10,8 +10,8 @@ config_version=5
 
 [application]
 
-config/name="Pose-Tracking"
-run/main_scene="uid://bytx5v67lownk"
+config/name="Godot-Plugin"
+run/main_scene="uid://ba60r3035ymeb"
 config/features=PackedStringArray("4.4", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -22,13 +22,8 @@ window/size/viewport_height=1280
 
 [dotnet]
 
-project/assembly_name="Pose-Tracking"
+project/assembly_name="Godot-Plugin"
 
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/Hal/plugin.cfg")
-
-[rendering]
-
-anti_aliasing/quality/msaa_3d=1
-anti_aliasing/quality/screen_space_aa=1
