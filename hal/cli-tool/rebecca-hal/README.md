@@ -1,96 +1,136 @@
-# 🧭 Rebecca IMU
+# Rebecca HAL CLI
 
-用于快速获取 IMU 数据的工具喵～
+一个方便 HAL 接口操作的命令行工具喵～
 
-## 🎮 使用方法
+## 功能
 
-### 查看可用设备
-```bash
-rebecca-imu
-```
+- 实时读取 IMU 数据流
+- 背光获取、调节
+- JSON 格式输出，方便脚本和上层应用的集成喵~
 
-返回：
-
-```
-Available IMUs: imu0
-```
-
-### 获取设备信息
-```bash
-rebecca-imu imu0 info
-```
-
-会显示设备的详细信息喵：
-
-```shell
-DeviceInfo {
-    device_type: "mpu6500",
-    status: "idle",
-    sample_rate: 50,
-    imu_data_port: 33217,
-    description: "📫 Subscribe to IMU data from <imu_data_port> using a ZMQ SUB socket. The data is published in Protobuf format, and its schema is available at /imu0/schema.",
-}
-```
-
-等效 `curl http://localhost:12580/imu0/info` 
-
-### 开始数据发布
-
-```bash
-rebecca-imu imu0 start
-```
-
-### 停止数据发布
-
-```bash
-rebecca-imu imu0 stop
-```
-
-等效 `curl http://localhost:12580/imu0/` 的 `start` 和 `stop` 
-
-### 订阅并读取数据
-
-```bash
-rebecca-imu imu0 read
-```
-
-会以 `JSON` 打印收到的 IMU 数据喵
-
-**配合 `jq` 使用，只打印欧拉角：**
-
-`rebecca-imu imu0 read | jq '{euler_angles}'`
-
-```shell
-...
-{
-  "euler_angles": [
-    0.9298685,
-    0.14228408,
-    1.4700449
-  ]
-}
-{
-  "euler_angles": [
-    0.9320044,
-    0.13620058,
-    1.4701023
-  ]
-}
-...
-```
-
-## 📦 安装
-
-要先获取 proto 格式文件喵，需要 HAL 已经在运行了哦
-```bash
-curl http://localhost:12580/imu0/schema -o src/imu_data.proto
-```
+## 安装
 
 ```bash
 cargo install --path .
 ```
 
+## 使用
+
+### 基本语法
+
+```bash
+rebecca-hal [选项] <子命令> [设备ID] [操作]
+```
+
+#### 全局选项
+
+- `--host`: Rebecca HAL 服务器地址，默认 localhost
+- `-p, --port`: 服务器端口，默认 12580
+- `-v, --verbose`: 详细日志输出模式
+- `-h, --help`: 显示帮助信息喵
+
+### IMU
+
+列出所有 IMU 设备：
+
+```bash
+rebecca-hal imu
+```
+
+返回：
+
+```json
+["imu0"]
+```
+
+获取 IMU 设备信息：
+
+```bash
+rebecca-hal imu imu0 info
+```
+
+启动 IMU 数据发布：
+
+```bash
+rebecca-hal imu imu0 start
+```
+
+实时读取 IMU 数据：
+
+```bash
+rebecca-hal imu imu0 read
+```
+
+_按 Ctrl+C 停止读取数据流喵_
+
+停止 IMU 数据发布：
+
+```bash
+rebecca-hal imu imu0 stop
+```
+
+### Backlight
+
+列出所有背光设备：
+
+```bash
+rebecca-hal backlight
+```
+
+返回：
+
+```json
+["backlight0"]
+```
+
+获取背光设备信息：
+
+```bash
+rebecca-hal backlight backlight0 info
+```
+
+获取当前亮度：
+
+```bash
+rebecca-hal backlight backlight0 get
+```
+
+返回：
+
+```json
+{
+  "brightness": 0.8
+}
+```
+
+设置亮度：
+
+```bash
+rebecca-hal backlight backlight0 set 0.5
+```
+
+### 远程连接
+
+连接到远程服务器：
+
+```bash
+rebecca-hal --host 192.168.1.233 --port 12580 imu imu0 info
+```
+
+## 开发
+
+### 编译
+
+```bash
+cargo build --release
+```
+
+### 运行
+
+```bash
+cargo run -- --verbose -h
+```
+
 ---
 
-*有了这个工具🪄，只要能执行系统命令，就可以轻松读取 IMU 数据了喵* 🐾
-
+_让硬件控制变得简单喵_ (´｡• ᵕ •｡`)
