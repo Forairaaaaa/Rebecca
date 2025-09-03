@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Rebecca HAL 卸载脚本
-# 此脚本将停止并移除 rebecca-hal 服务，并卸载二进制文件
+# 此脚本将停止并移除 rebecca-hal-service 服务，并卸载二进制文件
 
 set -e
 
@@ -11,8 +11,8 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-SERVICE_NAME="rebecca-hal"
-BINARY_NAME="rebecca-hal"
+SERVICE_NAME="rebecca-hal-service"
+BINARY_NAME="rebecca-hal-service"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 
 echo -e "${GREEN}开始卸载 Rebecca HAL...${NC}"

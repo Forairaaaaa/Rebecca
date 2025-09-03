@@ -1,5 +1,5 @@
 [package]
-name = "rebecca-hal"
+name = "rebecca-hal-service"
 version = "1.6.0"
 edition = "2024"
 

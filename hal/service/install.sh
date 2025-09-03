@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Rebecca HAL 安装脚本
-# 此脚本将安装 rebecca-hal 并设置为系统服务
+# 此脚本将安装 rebecca-hal-service 并设置为系统服务
 
 set -e
 
@@ -11,8 +11,8 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-SERVICE_NAME="rebecca-hal"
-BINARY_NAME="rebecca-hal"
+SERVICE_NAME="rebecca-hal-service"
+BINARY_NAME="rebecca-hal-service"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 
 echo -e "${GREEN}开始安装 Rebecca HAL...${NC}"
@@ -51,7 +51,7 @@ Restart=always
 RestartSec=5
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=rebecca-hal
+SyslogIdentifier=rebecca-hal-service
 
 # 安全设置
 NoNewPrivileges=yes
