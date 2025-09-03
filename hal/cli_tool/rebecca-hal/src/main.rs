@@ -1,3 +1,4 @@
+mod backlight;
 mod imu;
 
 use clap::{Parser, Subcommand};
@@ -33,6 +34,15 @@ enum SubCommand {
         #[command(subcommand)]
         command: Option<imu::ImuCommand>,
     },
+
+    /// Backlight related commands
+    Backlight {
+        /// ID of the backlight, e.g. backlight0, if not provided, list all available backlights
+        device_id: Option<String>,
+
+        #[command(subcommand)]
+        command: Option<backlight::BacklightCommand>,
+    },
 }
 
 #[tokio::main]
@@ -52,6 +62,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     match args.subcommand {
         SubCommand::Imu { device_id, command } => {
             imu::handle_imu_command(device_id, command, &args.host, args.port).await?;
+        }
+        SubCommand::Backlight { device_id, command } => {
+            backlight::handle_backlight_command(device_id, command, &args.host, args.port).await?;
         }
     }
 
