@@ -1,6 +1,6 @@
 [gd_scene load_steps=10 format=3 uid="uid://bytx5v67lownk"]
 
-[ext_resource type="Script" uid="uid://cy1fvg2wtpunx" path="res://Hal/Imu/Imu.cs" id="1_h2yge"]
+[ext_resource type="Script" uid="uid://cwq2c1omcaxkm" path="res://addons/Hal/Imu/Imu.cs" id="1_1bvp3"]
 [ext_resource type="Script" uid="uid://cci0vgktohp0m" path="res://pose_controller.gd" id="1_ig7tw"]
 [ext_resource type="Shader" uid="uid://c267ra3odplmt" path="res://label.gdshader" id="3_1bvp3"]
 [ext_resource type="Script" uid="uid://c407w31cag6ml" path="res://label.gd" id="3_h2yge"]
@@ -24,8 +24,8 @@ shader = ExtResource("3_1bvp3")
 [node name="Node3D" type="Node3D"]
 
 [node name="Imu" type="Node" parent="."]
-script = ExtResource("1_h2yge")
-metadata/_custom_type_script = "uid://cy1fvg2wtpunx"
+script = ExtResource("1_1bvp3")
+metadata/_custom_type_script = "uid://cwq2c1omcaxkm"
 
 [node name="Model" type="CharacterBody3D" parent="."]
 script = ExtResource("1_ig7tw")
