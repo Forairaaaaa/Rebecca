@@ -1,10 +1,98 @@
+use clap::Subcommand;
 use log::{debug, error, info};
 use prost::Message;
 use serde::{Deserialize, Serialize};
 use std::io;
+use tokio::signal;
 use zeromq::{Socket, SocketRecv, SubSocket};
 
 include!(concat!(env!("OUT_DIR"), "/_.rs"));
+
+#[derive(Subcommand, Debug)]
+pub enum ImuCommand {
+    /// Get IMU device information
+    Info,
+    /// Start IMU data publishing
+    Start,
+    /// Stop IMU data publishing
+    Stop,
+    /// Read IMU data
+    Read,
+}
+
+/// Handle IMU subcommand
+pub async fn handle_imu_command(
+    device_id: Option<String>,
+    command: Option<ImuCommand>,
+    host: &str,
+    port: u16,
+) -> Result<(), Box<dyn std::error::Error>> {
+    match command {
+        // If no subcommand provided, default behavior based on device_id
+        None => {
+            if device_id.is_none() {
+                // rebecca-hal imu - list all IMUs
+                let imus = list_imu(host, port).await?;
+                let json = serde_json::to_string(&imus)?;
+                println!("{}", json);
+            } else {
+                // rebecca-hal imu imu0 - default to info
+                let device_id = device_id.unwrap();
+                let device_info = get_device_info(&device_id, host, port).await?;
+                let json = serde_json::to_string_pretty(&device_info)?;
+                println!("{}", json);
+            }
+        }
+        Some(ImuCommand::Info) => {
+            if let Some(device_id) = device_id {
+                let device_info = get_device_info(&device_id, host, port).await?;
+                let json = serde_json::to_string_pretty(&device_info)?;
+                println!("{}", json);
+            } else {
+                eprintln!("Error: device_id is required for info command");
+                std::process::exit(1);
+            }
+        }
+        Some(ImuCommand::Start) => {
+            if let Some(device_id) = device_id {
+                start_imu_data_publishing(&device_id, host, port).await?;
+            } else {
+                eprintln!("Error: device_id is required for start command");
+                std::process::exit(1);
+            }
+        }
+        Some(ImuCommand::Stop) => {
+            if let Some(device_id) = device_id {
+                stop_imu_data_publishing(&device_id, host, port).await?;
+            } else {
+                eprintln!("Error: device_id is required for stop command");
+                std::process::exit(1);
+            }
+        }
+        Some(ImuCommand::Read) => {
+            if let Some(device_id) = device_id {
+                // Create IMU socket for reading data
+                let mut imu_socket = ImuSocket::new(&device_id, host, port).await?;
+
+                // Wait for signal
+                info!("start to listen imu data");
+
+                tokio::select! {
+                    _ = signal::ctrl_c() => {
+                        info!("received SIGINT signal");
+                    }
+                    _ = imu_socket.listen() => {
+                        error!("imu socket listen error");
+                    }
+                }
+            } else {
+                eprintln!("Error: device_id is required for read command");
+                std::process::exit(1);
+            }
+        }
+    }
+    Ok(())
+}
 
 /// List all available IMUs
 pub async fn list_imu(host: &str, port: u16) -> io::Result<Vec<String>> {

@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://bytx5v67lownk"]
+[gd_scene load_steps=10 format=3 uid="uid://bytx5v67lownk"]
 
-[ext_resource type="PackedScene" uid="uid://cyjeqvjrkhjj7" path="res://RebeccaImu/RebeccaImu.tscn" id="1_0xm2m"]
+[ext_resource type="Script" uid="uid://cy1fvg2wtpunx" path="res://Hal/Imu/Imu.cs" id="1_h2yge"]
 [ext_resource type="Script" uid="uid://cci0vgktohp0m" path="res://pose_controller.gd" id="1_ig7tw"]
+[ext_resource type="Shader" uid="uid://c267ra3odplmt" path="res://label.gdshader" id="3_1bvp3"]
 [ext_resource type="Script" uid="uid://c407w31cag6ml" path="res://label.gd" id="3_h2yge"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_7dm0k"]
@@ -17,7 +18,15 @@ material = SubResource("StandardMaterial3D_0xm2m")
 background_mode = 1
 background_color = Color(0.0862745, 0.627451, 0.521569, 1)
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lquwl"]
+shader = ExtResource("3_1bvp3")
+
 [node name="Node3D" type="Node3D"]
+
+[node name="Imu" type="Node" parent="."]
+script = ExtResource("1_h2yge")
+host = "172.20.241.21"
+metadata/_custom_type_script = "uid://cy1fvg2wtpunx"
 
 [node name="Model" type="CharacterBody3D" parent="."]
 script = ExtResource("1_ig7tw")
@@ -28,8 +37,6 @@ shape = SubResource("BoxShape3D_7dm0k")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Model"]
 mesh = SubResource("BoxMesh_7dm0k")
 
-[node name="RebeccaImu" parent="Model" instance=ExtResource("1_0xm2m")]
-
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.055)
 environment = SubResource("Environment_0xm2m")
@@ -37,6 +44,7 @@ environment = SubResource("Environment_0xm2m")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 
 [node name="Label" type="Label" parent="."]
+material = SubResource("ShaderMaterial_lquwl")
 offset_left = 22.0
 offset_top = 22.0
 offset_right = 62.0
@@ -44,5 +52,5 @@ offset_bottom = 45.0
 text = "wtf"
 script = ExtResource("3_h2yge")
 
-[connection signal="ImuDataReceived" from="Model/RebeccaImu" to="Model" method="_on_rebecca_imu_imu_data_received"]
-[connection signal="ImuDataReceived" from="Model/RebeccaImu" to="Label" method="_on_rebecca_imu_imu_data_received"]
+[connection signal="ImuDataReceived" from="Imu" to="Model" method="_on_imu_imu_data_received"]
+[connection signal="ImuDataReceived" from="Imu" to="Label" method="_on_imu_imu_data_received"]
