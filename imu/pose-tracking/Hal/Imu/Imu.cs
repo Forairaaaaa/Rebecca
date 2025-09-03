@@ -20,7 +20,7 @@ public partial class Imu : Node
     public string deviceId = "imu0";
 
     [Export]
-    public string cliToolName = "rebecca-imu";
+    public string cliToolName = "rebecca-hal";
 
     private Thread _readerThread;
     private Process _process;
@@ -45,7 +45,7 @@ public partial class Imu : Node
     /// <returns></returns>
     public bool StartReading()
     {
-        var args = $"--host {host} --port {port} {deviceId} start";
+        var args = $"--host {host} --port {port} imu {deviceId} start";
         return Common.ExecuteCommand(cliToolName, args);
     }
 
@@ -55,7 +55,7 @@ public partial class Imu : Node
     /// <returns></returns>
     public bool StopReading()
     {
-        var args = $"--host {host} --port {port} {deviceId} stop";
+        var args = $"--host {host} --port {port} imu {deviceId} stop";
         return Common.ExecuteCommand(cliToolName, args);
     }
 
@@ -92,7 +92,7 @@ public partial class Imu : Node
 
         _process = new Process();
         _process.StartInfo.FileName = cliToolName;
-        _process.StartInfo.Arguments = $"--host {host} --port {port} {deviceId} read";
+        _process.StartInfo.Arguments = $"--host {host} --port {port} imu {deviceId} read";
         _process.StartInfo.UseShellExecute = false;
         _process.StartInfo.RedirectStandardOutput = true;
         _process.StartInfo.RedirectStandardError = true;
