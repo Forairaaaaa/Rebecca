@@ -111,6 +111,7 @@ public partial class Imu : Node
     private void StopWroker()
     {
         _running = false;
+
         try
         {
             if (!_process.HasExited)

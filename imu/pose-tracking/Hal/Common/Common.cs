@@ -22,14 +22,14 @@ public static class Common
                 CreateNoWindow = true
             };
 
-            using (var process = Process.Start(processStartInfo))
+            using var process = Process.Start(processStartInfo);
+            if (process == null)
             {
-                if (process == null)
-                    return false;
-
-                process.WaitForExit();
-                return process.ExitCode == 0;
+                return false;
             }
+
+            process.WaitForExit();
+            return process.ExitCode == 0;
         }
         catch
         {
@@ -57,17 +57,17 @@ public static class Common
                 CreateNoWindow = true
             };
 
-            using (var process = Process.Start(processStartInfo))
+            using var process = Process.Start(processStartInfo);
+            if (process == null)
             {
-                if (process == null)
-                    return (false, "", "Process failed to start");
-
-                var output = process.StandardOutput.ReadToEnd();
-                var error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-
-                return (process.ExitCode == 0, output, error);
+                return (false, "", "Process failed to start");
             }
+
+            var output = process.StandardOutput.ReadToEnd();
+            var error = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            return (process.ExitCode == 0, output, error);
         }
         catch (System.Exception ex)
         {
