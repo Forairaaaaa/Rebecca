@@ -24,7 +24,7 @@ rebecca-hal [选项] <子命令> [设备ID] [操作]
 
 #### 全局选项
 
-- `--host`: Rebecca HAL 服务器地址，默认 localhost
+- `--host`: Rebecca HAL 服务地址，默认 localhost
 - `-p, --port`: 服务器端口，默认 12580
 - `-v, --verbose`: 详细日志输出模式
 - `-h, --help`: 显示帮助信息喵
@@ -111,7 +111,7 @@ rebecca-hal backlight backlight0 set 0.5
 
 ### 远程连接
 
-连接到远程服务器：
+连接到远程服务：
 
 ```bash
 rebecca-hal --host 192.168.1.233 --port 12580 imu imu0 info
