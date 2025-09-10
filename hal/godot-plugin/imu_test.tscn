@@ -31,5 +31,19 @@ offset_right = 137.0
 offset_bottom = 136.0
 text = "~"
 
+[node name="LabelOrientation" type="Label" parent="."]
+offset_left = 156.0
+offset_top = 21.0
+offset_right = 275.0
+offset_bottom = 44.0
+text = "~"
+
+[node name="LabelOrientationAngle" type="Label" parent="."]
+offset_left = 156.0
+offset_top = 67.0
+offset_right = 275.0
+offset_bottom = 90.0
+text = "~"
+
 [connection signal="pressed" from="ButtonStart" to="." method="_on_button_start_pressed"]
 [connection signal="pressed" from="ButtonStop" to="." method="_on_button_stop_pressed"]
