@@ -1,14 +1,14 @@
 [gd_scene load_steps=3 format=3 uid="uid://ba60r3035ymeb"]
 
-[ext_resource type="Script" uid="uid://cwq2c1omcaxkm" path="res://addons/Hal/Imu/Imu.cs" id="1_27auu"]
 [ext_resource type="Script" uid="uid://4l8xbbivdkdd" path="res://imu_test.gd" id="1_e00by"]
+[ext_resource type="Script" uid="uid://si2mfbyweps1" path="res://addons/rebecca_hal/imu.gd" id="2_e00by"]
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource("1_e00by")
 
 [node name="Imu" type="Node" parent="."]
-script = ExtResource("1_27auu")
-metadata/_custom_type_script = "uid://cwq2c1omcaxkm"
+script = ExtResource("2_e00by")
+metadata/_custom_type_script = "uid://si2mfbyweps1"
 
 [node name="ButtonStart" type="Button" parent="."]
 offset_left = 14.0
@@ -31,6 +31,5 @@ offset_right = 137.0
 offset_bottom = 136.0
 text = "~"
 
-[connection signal="ImuDataReceived" from="Imu" to="." method="_on_imu_imu_data_received"]
 [connection signal="pressed" from="ButtonStart" to="." method="_on_button_start_pressed"]
 [connection signal="pressed" from="ButtonStop" to="." method="_on_button_stop_pressed"]
