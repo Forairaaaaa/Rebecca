@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading;
 using System;
 
-[GlobalClass]
 public partial class Imu : Node
 {
     [Signal]
@@ -37,6 +36,8 @@ public partial class Imu : Node
 
         StartReading();
         StartWorker();
+
+        GD.Print("[IMU] ready");
     }
 
     /// <summary>
@@ -45,6 +46,7 @@ public partial class Imu : Node
     /// <returns></returns>
     public bool StartReading()
     {
+        GD.Print("[IMU] start reading");
         var args = $"--host {host} --port {port} imu {deviceId} start";
         return Common.ExecuteCommand(cliToolName, args);
     }
@@ -55,6 +57,7 @@ public partial class Imu : Node
     /// <returns></returns>
     public bool StopReading()
     {
+        GD.Print("[IMU] stop reading");
         var args = $"--host {host} --port {port} imu {deviceId} stop";
         return Common.ExecuteCommand(cliToolName, args);
     }
@@ -127,6 +130,7 @@ public partial class Imu : Node
 
     public void Cleanup()
     {
+        GD.Print("[IMU] cleanup");
         StopWroker();
         StopReading();
     }
@@ -135,6 +139,7 @@ public partial class Imu : Node
     {
         Cleanup();
     }
+
     public override void _Notification(int what)
     {
         if (what == NotificationWMCloseRequest)

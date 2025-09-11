@@ -18,7 +18,7 @@ config/icon="res://icon.svg"
 [display]
 
 window/size/viewport_width=1080
-window/size/viewport_height=1280
+window/size/viewport_height=1240
 
 [dotnet]
 
@@ -26,4 +26,4 @@ project/assembly_name="Godot-Plugin"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/Hal/plugin.cfg")
+enabled=PackedStringArray("res://addons/rebecca_hal/plugin.cfg")

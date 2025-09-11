@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- 相机主体 -->
+  <rect x="8" y="26" width="48" height="28" rx="4" ry="4" fill="#E0E0E0" stroke="#F0F0F0" stroke-width="1"/>
+  
+  <!-- 相机顶部（热靴区域） -->
+  <rect x="20" y="16" width="24" height="10" rx="2" ry="2" fill="#E8E8E8" stroke="#F0F0F0" stroke-width="1"/>
+  
+  <!-- 镜头外圈 -->
+  <circle cx="32" cy="40" r="10" fill="#222" stroke="#555" stroke-width="1"/>
+  
+  <!-- 镜头内圈 -->
+  <circle cx="32" cy="40" r="7" fill="#111" stroke="#333" stroke-width="1"/>
+  
+  <!-- 镜头中心反光 -->
+  <circle cx="30" cy="38" r="2" fill="#666" opacity="0.7"/>
+  
+  <!-- 快门按钮 -->
+  <circle cx="48" cy="21" r="3" fill="#D8D8D8" stroke="#E8E8E8" stroke-width="1"/>
+  
+  <!-- 闪光灯 -->
+  <rect x="14" y="18" width="4" height="4" rx="1" ry="1" fill="#FFE135"/>
+  
+  <!-- 取景器 -->
+  <rect x="28" y="18" width="8" height="4" rx="1" ry="1" fill="#888888"/>
+</svg>
