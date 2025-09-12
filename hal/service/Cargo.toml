@@ -1,6 +1,6 @@
 [package]
 name = "rebecca-hal-service"
-version = "1.6.0"
+version = "1.6.2"
 edition = "2024"
 
 [dependencies]

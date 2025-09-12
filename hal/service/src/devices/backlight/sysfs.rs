@@ -100,12 +100,23 @@ impl SysfsBacklight {
 
         for entry in entries.flatten() {
             let device_name = entry.file_name().to_string_lossy().to_string();
+            if Self::is_excluded(&device_name) {
+                debug!("excluded backlight device: {}", device_name);
+                continue;
+            }
             if let Some(device) = Self::new(&device_name) {
                 devices.push(device);
             }
         }
 
         devices
+    }
+
+    fn is_excluded(name: &str) -> bool {
+        static EXCLUDED_FB_NAMES: &[&str] = &[
+            // ...
+        ];
+        EXCLUDED_FB_NAMES.contains(&name)
     }
 }
 

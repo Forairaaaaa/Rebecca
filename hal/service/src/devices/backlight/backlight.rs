@@ -16,7 +16,7 @@ macro_rules! arc_clones {
 }
 
 // 注册设备
-async fn register_device(backlight: &Arc<dyn Backlight + Send + Sync>) {
+async fn register_device(id: &str, backlight: &Arc<dyn Backlight + Send + Sync>) {
     arc_clones!(
         backlight,
         backlight_clone1,
@@ -39,13 +39,13 @@ async fn register_device(backlight: &Arc<dyn Backlight + Send + Sync>) {
     };
 
     // Add device to device list
-    API_REGISTER.add_device(backlight.name()).await;
+    API_REGISTER.add_device(id.to_string()).await;
 
     // Get info
     if let Err(e) = API_REGISTER
         .add_api(
             ApiRoute {
-                path: format!("/{}/info", backlight.name()),
+                path: format!("/{}/info", id),
                 method: Method::GET,
                 description: format!("{} Get device info.", Emoji::INFO),
             },
@@ -75,7 +75,7 @@ async fn register_device(backlight: &Arc<dyn Backlight + Send + Sync>) {
     if let Err(e) = API_REGISTER
         .add_api(
             ApiRoute {
-                path: format!("/{}/get", backlight.name()),
+                path: format!("/{}/get", id),
                 method: Method::GET,
                 description: format!("{} Get current brightness (0.0~1.0).", Emoji::LIGHT),
             },
@@ -106,9 +106,9 @@ async fn register_device(backlight: &Arc<dyn Backlight + Send + Sync>) {
     if let Err(e) = API_REGISTER
         .add_api(
             ApiRoute {
-                path: format!("/{}/set", backlight.name()),
+                path: format!("/{}/set", id),
                 method: Method::GET,
-                description: format!("{} Set brightness (0.0~1.0). Use query parameter: /{}/set?brightness=0.5", Emoji::START, backlight.name()),
+                description: format!("{} Set brightness (0.0~1.0). Use query parameter: /{}/set?brightness=0.5", Emoji::START, id),
             },
             Box::new(move |request| {
                 let backlight = Arc::clone(&backlight_clone3);
@@ -181,7 +181,7 @@ pub async fn start_backlight_service(
     // Create mock backlights
     if mock_backlight {
         info!("create mock backlights");
-        let mock = MockBacklight::new("backlight0", 2047);
+        let mock = MockBacklight::new("mock", 2047);
 
         if let Err(e) = mock.init() {
             warn!("failed to init mock backlight {}: {}", mock.name(), e);
@@ -199,8 +199,8 @@ pub async fn start_backlight_service(
     }
 
     // Register devices
-    for backlight in &backlights {
-        register_device(backlight).await;
+    for (i,backlight) in backlights.iter().enumerate() {
+        register_device(format!("backlight{}", i).as_str(), backlight).await;
     }
 
     info!("backlight service started with {} devices", backlights.len());
