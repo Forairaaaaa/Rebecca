@@ -92,21 +92,6 @@ class CameraWindow(QMainWindow):
         # 创建悬浮旋转按钮
         self.rotate_button = QPushButton("旋转 0°", central_widget)
         self.rotate_button.clicked.connect(self.rotate_frame)
-        self.rotate_button.setFixedSize(80, 30)
-        self.rotate_button.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(0, 0, 0, 60);
-                color: white;
-                border-radius: 15px;
-                font-size: 12px;
-            }
-            QPushButton:hover {
-                background-color: rgba(0, 0, 0, 120);
-            }
-            QPushButton:pressed {
-                background-color: rgba(0, 0, 0, 160);
-            }
-        """)
 
         # 设置按钮位置在左下角
         self.rotate_button.move(20, self.height() - 60)
@@ -114,44 +99,16 @@ class CameraWindow(QMainWindow):
         # 创建缩放模式切换按钮
         self.scale_button = QPushButton("Fill", central_widget)
         self.scale_button.clicked.connect(self.toggle_scale_mode)
-        self.scale_button.setFixedSize(80, 30)
-        self.scale_button.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(0, 0, 0, 60);
-                color: white;
-                border-radius: 15px;
-                font-size: 12px;
-            }
-            QPushButton:hover {
-                background-color: rgba(0, 0, 0, 120);
-            }
-            QPushButton:pressed {
-                background-color: rgba(0, 0, 0, 160);
-            }
-        """)
 
         # 设置缩放按钮位置在右下角
         self.scale_button.move(self.width() - 100, self.height() - 60)
 
         # 创建拍摄按钮
         self.capture_button = QPushButton("", central_widget)
-        self.capture_button.setFixedSize(60, 60)
 
         # 重写按钮事件处理
         self.capture_button.mousePressEvent = self.capture_button_press
         self.capture_button.mouseReleaseEvent = self.capture_button_release
-        self.capture_button.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(255, 255, 255, 233);
-                border-radius: 30px;
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 255, 255, 168);
-            }
-            QPushButton:pressed {
-                background-color: rgba(255, 255, 255, 123);
-            }
-        """)
 
         # 初始按钮位置设置
         self.update_button_positions()
@@ -209,19 +166,8 @@ class CameraWindow(QMainWindow):
         # 开始录制时长更新定时器
         self.recording_timer.start(100)
 
-        # 更新按钮样式为录像模式
-        self.capture_button.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(255, 59, 48, 233);
-                border-radius: 30px;
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 59, 48, 168);
-            }
-            QPushButton:pressed {
-                background-color: rgba(255, 59, 48, 123);
-            }
-        """)
+        # 更新按钮样式为录像模式 - 通过重新调用位置更新来应用样式
+        self.update_button_positions()
 
         print(f"开始录像: {filename}")
 
@@ -233,19 +179,8 @@ class CameraWindow(QMainWindow):
         # 隐藏录制时长标签
         self.recording_time_label.hide()
 
-        # 恢复按钮样式为拍照模式
-        self.capture_button.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(255, 255, 255, 233);
-                border-radius: 30px;
-            }
-            QPushButton:hover {
-                background-color: rgba(255, 255, 255, 168);
-            }
-            QPushButton:pressed {
-                background-color: rgba(255, 255, 255, 123);
-            }
-        """)
+        # 恢复按钮样式为拍照模式 - 通过重新调用位置更新来应用样式
+        self.update_button_positions()
 
         print(f"录像已停止: {filename}")
 
@@ -322,29 +257,134 @@ class CameraWindow(QMainWindow):
 
     def update_button_positions(self):
         """
-        更新按钮位置以适应当前窗口大小
+        更新按钮位置和大小以适应当前窗口大小
         """
         current_size = self.size()
         window_width = current_size.width()
         window_height = current_size.height()
 
-        # 计算按钮中心对齐的Y坐标
-        button_center_y = window_height - 60
+        # 计算缩放因子，基于窗口的最小尺寸
+        # 基准尺寸设为320x480（原始设计尺寸）
+        base_width = 320
+        base_height = 480
+        scale_factor = min(window_width / base_width, window_height / base_height)
 
-        # 左下角：旋转按钮 (高度30px，所以Y坐标要减15px)
-        self.rotate_button.move(20, button_center_y - 15)
+        # 限制缩放因子的范围，避免按钮过小或过大
+        scale_factor = max(0.8, min(scale_factor, 3.0))
 
-        # 右下角：缩放模式按钮 (高度30px，所以Y坐标要减15px)
-        self.scale_button.move(window_width - 100, button_center_y - 15)
+        # 计算按钮尺寸
+        small_button_width = int(80 * scale_factor)
+        small_button_height = int(30 * scale_factor)
+        capture_button_size = int(60 * scale_factor)
 
-        # 底部中央：拍摄按钮 (高度60px，所以Y坐标要减30px)
-        self.capture_button.move((window_width - 60) // 2, button_center_y - 30)
+        # 更新按钮尺寸
+        self.rotate_button.setFixedSize(small_button_width, small_button_height)
+        self.scale_button.setFixedSize(small_button_width, small_button_height)
+        self.capture_button.setFixedSize(capture_button_size, capture_button_size)
+
+        # 更新按钮圆角半径以保持比例
+        small_button_radius = int(15 * scale_factor)
+        capture_button_radius = int(30 * scale_factor)
+
+        # 更新按钮样式
+        self._update_button_styles(
+            small_button_radius, capture_button_radius, scale_factor
+        )
+
+        # 计算按钮中心对齐的Y坐标，根据最大按钮尺寸动态调整底部边距
+        # 确保最大的按钮（拍摄按钮）底部不会越界
+        bottom_margin = max(60, capture_button_size // 2 + 50)  # 至少20px边距
+        button_center_y = window_height - bottom_margin
+
+        # 左下角：旋转按钮
+        self.rotate_button.move(20, button_center_y - small_button_height // 2)
+
+        # 右下角：缩放模式按钮
+        self.scale_button.move(
+            window_width - small_button_width - 20,
+            button_center_y - small_button_height // 2,
+        )
+
+        # 底部中央：拍摄按钮
+        self.capture_button.move(
+            (window_width - capture_button_size) // 2,
+            button_center_y - capture_button_size // 2,
+        )
 
         # 顶部中央：录制时长显示器
         if hasattr(self, "recording_time_label"):
             self.recording_time_label.adjustSize()
             label_width = self.recording_time_label.width()
             self.recording_time_label.move((window_width - label_width) // 2, 20)
+
+    def _update_button_styles(
+        self, small_button_radius, capture_button_radius, scale_factor
+    ):
+        """
+        更新按钮样式以适应缩放
+        """
+        # 计算字体大小
+        small_font_size = int(12 * scale_factor)
+
+        # 更新旋转按钮样式
+        self.rotate_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: rgba(0, 0, 0, 60);
+                color: white;
+                border-radius: {small_button_radius}px;
+                font-size: {small_font_size}px;
+            }}
+            QPushButton:hover {{
+                background-color: rgba(0, 0, 0, 120);
+            }}
+            QPushButton:pressed {{
+                background-color: rgba(0, 0, 0, 160);
+            }}
+        """)
+
+        # 更新缩放按钮样式
+        self.scale_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: rgba(0, 0, 0, 60);
+                color: white;
+                border-radius: {small_button_radius}px;
+                font-size: {small_font_size}px;
+            }}
+            QPushButton:hover {{
+                background-color: rgba(0, 0, 0, 120);
+            }}
+            QPushButton:pressed {{
+                background-color: rgba(0, 0, 0, 160);
+            }}
+        """)
+
+        # 更新拍摄按钮样式（根据当前录制状态）
+        if self.is_recording:
+            self.capture_button.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: rgba(255, 59, 48, 233);
+                    border-radius: {capture_button_radius}px;
+                }}
+                QPushButton:hover {{
+                    background-color: rgba(255, 59, 48, 168);
+                }}
+                QPushButton:pressed {{
+                    background-color: rgba(255, 59, 48, 123);
+                }}
+            """)
+        else:
+            self.capture_button.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: rgba(255, 255, 255, 233);
+                    border-radius: {capture_button_radius}px;
+                }}
+                QPushButton:hover {{
+                    background-color: rgba(255, 255, 255, 168);
+                }}
+                QPushButton:pressed {{
+                    background-color: rgba(255, 255, 255, 123);
+                }}
+            """)
 
     def rotate_frame(self):
         """
