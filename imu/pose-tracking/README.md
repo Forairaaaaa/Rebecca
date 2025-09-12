@@ -1,6 +1,6 @@
 Godot 上用 `rebecca-imu` 获取四元数，赋值给3D模型
 
-下载字体: `./fetch_font.sh`
+下载字体依赖: `./fetch_font.sh`
 
 因为没有地磁计，所以直接赋值会有误差缓慢转动~
 
