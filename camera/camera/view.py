@@ -31,6 +31,8 @@ class CameraWindow(QMainWindow):
         if fullscreen:
             # 设置无边框全屏模式，获得完全的全黑背景
             self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+            # 确保主窗口也没有样式边距
+            self.setStyleSheet("QMainWindow { margin: 0px; padding: 0px; }")
             self.showFullScreen()
         else:
             self.resize(320, 480)
@@ -57,7 +59,12 @@ class CameraWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
-        layout.setContentsMargins(5, 5, 5, 5)
+
+        # 根据是否全屏设置不同的边距
+        if fullscreen:
+            layout.setContentsMargins(0, 0, 0, 0)  # 全屏模式无边距
+        else:
+            layout.setContentsMargins(5, 5, 5, 5)  # 窗口模式保持边距
 
         # 创建显示标签
         self.image_label = QLabel()
@@ -65,18 +72,24 @@ class CameraWindow(QMainWindow):
         self.image_label.setStyleSheet("background-color: black;")
         layout.addWidget(self.image_label)
 
-        # 创建画面透明度效果用于闪光
-        self.image_opacity_effect = QGraphicsOpacityEffect()
-        self.image_opacity_effect.setOpacity(1.0)  # 确保初始透明度为1.0
-        self.image_label.setGraphicsEffect(self.image_opacity_effect)
+        # 创建黑色遮罩用于拍照闪光效果
+        self.flash_overlay = QLabel(self.image_label)
+        self.flash_overlay.setStyleSheet("background-color: black;")
+        self.flash_overlay.hide()  # 初始隐藏
 
-        # 创建闪光动画（画面变黑再恢复）
-        self.flash_animation = QPropertyAnimation(self.image_opacity_effect, b"opacity")
+        # 创建遮罩透明度效果
+        self.flash_opacity_effect = QGraphicsOpacityEffect()
+        self.flash_opacity_effect.setOpacity(0.0)  # 初始完全透明
+        self.flash_overlay.setGraphicsEffect(self.flash_opacity_effect)
+
+        # 创建闪光动画（黑色遮罩显示再隐藏）
+        self.flash_animation = QPropertyAnimation(self.flash_opacity_effect, b"opacity")
         self.flash_animation.setDuration(200)
-        self.flash_animation.setKeyValueAt(0.0, 1.0)  # 开始：正常显示
-        self.flash_animation.setKeyValueAt(0.3, 0.0)  # 30%时：完全变黑
-        self.flash_animation.setKeyValueAt(1.0, 1.0)  # 结束：恢复正常
+        self.flash_animation.setKeyValueAt(0.0, 0.0)  # 开始：遮罩透明
+        self.flash_animation.setKeyValueAt(0.3, 1.0)  # 30%时：遮罩完全不透明（黑色）
+        self.flash_animation.setKeyValueAt(1.0, 0.0)  # 结束：遮罩透明
         self.flash_animation.setEasingCurve(QEasingCurve.InOutQuad)
+        self.flash_animation.finished.connect(self._on_flash_animation_finished)
 
         # 创建录制时长显示器（iOS风格）
         self.recording_time_label = QLabel("", central_widget)
@@ -486,11 +499,21 @@ class CameraWindow(QMainWindow):
         if self.flash_animation.state() == QPropertyAnimation.Running:
             self.flash_animation.stop()
 
-        # 重置透明度为1.0，确保动画从正确状态开始
-        self.image_opacity_effect.setOpacity(1.0)
+        # 调整遮罩层大小以覆盖整个图像标签
+        self.flash_overlay.resize(self.image_label.size())
+        self.flash_overlay.show()
 
-        # 开始画面闪烁动画
+        # 重置遮罩透明度为0.0，确保动画从正确状态开始
+        self.flash_opacity_effect.setOpacity(0.0)
+
+        # 开始黑色遮罩闪烁动画
         self.flash_animation.start()
+
+    def _on_flash_animation_finished(self):
+        """
+        闪光动画完成后隐藏遮罩层
+        """
+        self.flash_overlay.hide()
 
     def resizeEvent(self, event):
         """
@@ -499,6 +522,10 @@ class CameraWindow(QMainWindow):
         super().resizeEvent(event)
         if hasattr(self, "rotate_button"):  # 确保按钮已经创建
             self.update_button_positions()
+
+        # 更新闪光遮罩层大小
+        if hasattr(self, "flash_overlay"):
+            self.flash_overlay.resize(self.image_label.size())
 
     def keyPressEvent(self, event: QKeyEvent):
         """
