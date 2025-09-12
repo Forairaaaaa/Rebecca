@@ -94,17 +94,6 @@ class CameraWindow(QMainWindow):
         # 创建录制时长显示器（iOS风格）
         self.recording_time_label = QLabel("", central_widget)
         self.recording_time_label.setAlignment(Qt.AlignCenter)
-        self.recording_time_label.setStyleSheet("""
-            QLabel {
-                background-color: rgba(255, 59, 48, 230);
-                color: white;
-                border-radius: 12px;
-                font-size: 14px;
-                font-weight: bold;
-                padding: 6px 12px;
-            }
-        """)
-        self.recording_time_label.setFont(QFont("Arial", 14, QFont.Bold))
         self.recording_time_label.hide()  # 初始隐藏
 
         # 创建悬浮旋转按钮
@@ -336,7 +325,11 @@ class CameraWindow(QMainWindow):
         if hasattr(self, "recording_time_label"):
             self.recording_time_label.adjustSize()
             label_width = self.recording_time_label.width()
-            self.recording_time_label.move((window_width - label_width) // 2, 20)
+            # 计算顶部边距，也根据缩放因子调整
+            top_margin = max(20, int(20 * scale_factor))
+            self.recording_time_label.move(
+                (window_width - label_width) // 2, top_margin
+            )
 
     def _update_button_styles(
         self, small_button_radius, capture_button_radius, scale_factor
@@ -406,6 +399,24 @@ class CameraWindow(QMainWindow):
                     background-color: rgba(255, 255, 255, 123);
                 }}
             """)
+
+        # 更新录制时间显示器样式
+        timer_font_size = int(14 * scale_factor)
+        timer_radius = int(12 * scale_factor)
+        timer_padding_v = int(6 * scale_factor)
+        timer_padding_h = int(12 * scale_factor)
+
+        self.recording_time_label.setStyleSheet(f"""
+            QLabel {{
+                background-color: rgba(255, 59, 48, 230);
+                color: white;
+                border-radius: {timer_radius}px;
+                font-size: {timer_font_size}px;
+                font-weight: bold;
+                padding: {timer_padding_v}px {timer_padding_h}px;
+            }}
+        """)
+        self.recording_time_label.setFont(QFont("Arial", timer_font_size, QFont.Bold))
 
     def rotate_frame(self):
         """
@@ -489,7 +500,18 @@ class CameraWindow(QMainWindow):
         # 重新定位标签到顶部中央
         window_width = self.width()
         label_width = self.recording_time_label.width()
-        self.recording_time_label.move((window_width - label_width) // 2, 20)
+
+        # 计算顶部边距，也根据缩放因子调整
+        current_size = self.size()
+        base_width = 320
+        base_height = 480
+        scale_factor = min(
+            window_width / base_width, current_size.height() / base_height
+        )
+        scale_factor = max(0.8, min(scale_factor, 3.0))
+        top_margin = max(20, int(20 * scale_factor))
+
+        self.recording_time_label.move((window_width - label_width) // 2, top_margin)
 
     def trigger_capture_effect(self):
         """
