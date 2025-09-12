@@ -1,25 +1,30 @@
-[gd_scene load_steps=10 format=3 uid="uid://bytx5v67lownk"]
+[gd_scene load_steps=12 format=3 uid="uid://bytx5v67lownk"]
 
 [ext_resource type="Script" uid="uid://cbr61ksvjhmxb" path="res://addons/rebecca_hal/imu.gd" id="1_1bvp3"]
 [ext_resource type="Script" uid="uid://cci0vgktohp0m" path="res://pose_controller.gd" id="1_ig7tw"]
 [ext_resource type="Shader" uid="uid://c267ra3odplmt" path="res://label.gdshader" id="3_1bvp3"]
 [ext_resource type="Script" uid="uid://c407w31cag6ml" path="res://label.gd" id="3_h2yge"]
+[ext_resource type="FontFile" uid="uid://760eibvcbmcq" path="res://RammettoOne-Regular.woff2" id="4_lquwl"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_7dm0k"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0xm2m"]
-albedo_color = Color(0.976471, 0.792157, 0.141176, 1)
-roughness = 0.5
+albedo_color = Color(0.996078, 0.831373, 0.32549, 1)
+roughness = 0.34
 
 [sub_resource type="BoxMesh" id="BoxMesh_7dm0k"]
 material = SubResource("StandardMaterial3D_0xm2m")
 
 [sub_resource type="Environment" id="Environment_0xm2m"]
 background_mode = 1
-background_color = Color(0.0862745, 0.627451, 0.521569, 1)
+background_color = Color(0.596078, 0.603922, 0.839216, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lquwl"]
 shader = ExtResource("3_1bvp3")
+
+[sub_resource type="LabelSettings" id="LabelSettings_7mycd"]
+font = ExtResource("4_lquwl")
+font_size = 54
 
 [node name="Node3D" type="Node3D"]
 
@@ -44,11 +49,11 @@ environment = SubResource("Environment_0xm2m")
 
 [node name="Label" type="Label" parent="."]
 material = SubResource("ShaderMaterial_lquwl")
-offset_left = 22.0
-offset_top = 22.0
-offset_right = 62.0
-offset_bottom = 45.0
+offset_left = 50.0
+offset_right = 1130.0
+offset_bottom = 1240.0
 text = "wtf"
+label_settings = SubResource("LabelSettings_7mycd")
 script = ExtResource("3_h2yge")
 
 [connection signal="imu_data_received" from="Imu" to="Model" method="_on_imu_imu_data_received"]
