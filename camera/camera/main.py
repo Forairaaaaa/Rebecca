@@ -114,14 +114,14 @@ class CameraWindow(QMainWindow):
         self.capture_button.setFixedSize(60, 60)
         self.capture_button.setStyleSheet("""
             QPushButton {
-                background-color: rgba(255, 255, 255, 123);
+                background-color: rgba(255, 255, 255, 233);
                 border-radius: 30px;
             }
             QPushButton:hover {
-                background-color: rgba(255, 255, 255, 255);
+                background-color: rgba(255, 255, 255, 168);
             }
             QPushButton:pressed {
-                background-color: rgba(255, 255, 255, 200);
+                background-color: rgba(255, 255, 255, 123);
             }
         """)
 
