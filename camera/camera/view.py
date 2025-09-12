@@ -293,15 +293,18 @@ class CameraWindow(QMainWindow):
 
         # 计算按钮中心对齐的Y坐标，根据最大按钮尺寸动态调整底部边距
         # 确保最大的按钮（拍摄按钮）底部不会越界
-        bottom_margin = max(60, capture_button_size // 2 + 50)  # 至少20px边距
+        bottom_margin = max(60, capture_button_size // 2 + 50)  # 至少50px边距
         button_center_y = window_height - bottom_margin
 
+        # 计算侧边按钮的边距，根据缩放因子调整
+        side_margin = max(20, int(20 * scale_factor))
+
         # 左下角：旋转按钮
-        self.rotate_button.move(20, button_center_y - small_button_height // 2)
+        self.rotate_button.move(side_margin, button_center_y - small_button_height // 2)
 
         # 右下角：缩放模式按钮
         self.scale_button.move(
-            window_width - small_button_width - 20,
+            window_width - small_button_width - side_margin,
             button_center_y - small_button_height // 2,
         )
 

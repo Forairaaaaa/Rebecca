@@ -7,5 +7,9 @@ sudo apt install libxcb-cursor0
 ```
 
 ```
-uv run .\main.py
+uv pip install pyside6-essentials
+```
+
+```
+DISPLAY=:0 uv run main.py --full-screen
 ```
