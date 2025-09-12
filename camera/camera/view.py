@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QPushButton,
 )
 from PySide6.QtCore import QTimer, Qt, QPropertyAnimation, QEasingCurve
-from PySide6.QtGui import QImage, QPixmap, QIcon, QFont
+from PySide6.QtGui import QImage, QPixmap, QIcon, QFont, QKeyEvent
 from PySide6.QtWidgets import QGraphicsOpacityEffect
 from camera import Camera
 
@@ -25,7 +25,12 @@ class CameraWindow(QMainWindow):
             icon = QIcon("icon.svg")
             self.setWindowIcon(icon)
 
+        # 存储全屏状态
+        self.is_fullscreen_mode = fullscreen
+
         if fullscreen:
+            # 设置无边框全屏模式，获得完全的全黑背景
+            self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
             self.showFullScreen()
         else:
             self.resize(320, 480)
@@ -494,6 +499,16 @@ class CameraWindow(QMainWindow):
         super().resizeEvent(event)
         if hasattr(self, "rotate_button"):  # 确保按钮已经创建
             self.update_button_positions()
+
+    def keyPressEvent(self, event: QKeyEvent):
+        """
+        处理键盘事件，支持ESC键退出全屏
+        """
+        if event.key() == Qt.Key_Escape and self.is_fullscreen_mode:
+            # ESC键退出全屏
+            self.close()
+        else:
+            super().keyPressEvent(event)
 
     def closeEvent(self, event):
         """

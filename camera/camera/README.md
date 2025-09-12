@@ -7,6 +7,10 @@ sudo apt install libxcb-cursor0
 ```
 
 ```
+uv sync
+```
+
+```
 uv pip install pyside6-essentials
 ```
 
