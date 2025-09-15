@@ -1,4 +1,5 @@
-./*.iso
+*.iso
+*.img
 .tmp/
 share/
 windows xp games/
