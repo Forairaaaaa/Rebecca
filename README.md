@@ -28,7 +28,7 @@
 └── vintage                      # 古早系统模拟器
 ```
 
-## 驱动和内核
+## 内核和驱动
 
 > **目前驱动是以64位官方镜像为基础开发的**
 
@@ -113,7 +113,9 @@ make -j6 Image.gz modules dtbs
 
 ## 结构
 
-Fusion 工程和拓竹打印工程可以在 release 下载 [to fuck]
+Fusion和拓竹工程 可以在 release 下载 [to fuck]
+
+我视频里用的 PLA 哑光，长时间使用建议用更耐高温的，底部散热出气还是比较热的
 
 [to fuck] bad ass hero shot
 
