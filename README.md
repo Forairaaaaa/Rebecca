@@ -109,11 +109,13 @@ make -j6 Image.gz modules dtbs
 - 两个 SPI 副屏接口
 - 两个 I2C 扩展接口
 - ES8311 Codec，NS4150 功放 + 喇叭接口，模拟 MIC
+- 环境光传感器
 
 注意事项：
 
 - 两个 I2C 接口是用来连线到两边侧翼的磁吸接口的，还没实际试过
 - 模拟 MIC 没调试出来，没有声音，还不确定是软件问题还是电路问题
+- 环境光传感器位置不理想，用不透明材料做外壳的话会挡住
 
 ### 部分零件链接
 
@@ -128,7 +130,7 @@ make -j6 Image.gz modules dtbs
 
 ## 结构
 
-Fusion和拓竹工程 可以在 release 下载 [to fuck]
+Fusion和拓竹工程可以在 release 下载 [to fuck]
 
 我视频里用的 PLA 哑光，长时间使用建议用更耐高温的，底部散热出气还是比较热的
 
