@@ -1,6 +1,8 @@
 # Rebecca
 
-[to fuck] many bad ass hero shot
+![done mp4_20250916_234539 802](https://github.com/user-attachments/assets/22227d79-40d6-4819-8e60-59795eafba4e)
+
+视频链接：[to fucK]
 
 ## 月饼盒
 
@@ -80,21 +82,9 @@ make -j6 Image.gz modules dtbs
 
 立创开源链接：[链接](https://oshwhub.com/eedadada/rebecca)
 
-### 主控
-
-[to fuck] bad ass hero shot
-
 主控是[树莓派5](https://www.raspberrypi.com/products/raspberry-pi-5/)
 
-### UPS 电源
-
-[to fuck] bad ass hero shot
-
-直接买的[这个](https://wiki.geekworm.com/X1200)
-
 ### 屏幕驱动板
-
-[to fuck] bad ass hero shot
 
 - 屏幕驱动
 - 自定义按钮
@@ -103,8 +93,6 @@ make -j6 Image.gz modules dtbs
 感谢 [@Cjiio](https://oshwhub.com/ccrs/g1392fh101gg-003-qu-dong-ban) 和 [@萨纳兰的黄昏](https://oshwhub.com/planevina/tai-shan-pai-amoled-ping-zhuan-jie-ban) 的屏幕驱动项目，参考了很多~
 
 ### 中间转接板
-
-[to fuck] bad ass hero shot
 
 - 两个 SPI 副屏接口
 - 两个 I2C 扩展接口
@@ -134,8 +122,6 @@ Fusion和拓竹工程可以在 release 下载 [to fuck]
 
 我视频里用的 PLA 哑光，长时间使用建议用更耐高温的，底部散热出气还是比较热的
 
-[to fuck] bad ass hero shot
-
 ### 零件链接
 
 | :)                            | (:                                                           |
@@ -147,6 +133,7 @@ Fusion和拓竹工程可以在 release 下载 [to fuck]
 | MagSafe磁吸环                 | [链接](https://detail.tmall.com/item.htm?_u=g2bdtj0f9b42&id=681312383366&spm=a1z09.2.0.0.ddaa2e8d5YZtxH) |
 | 侧板磁吸磁铁 直径3mm 厚度 2mm | [链接](https://item.taobao.com/item.htm?spm=a1z09.2.0.0.ddaa2e8d5YZtxH&id=710543909089&_u=g2bdtj0fe1c5) |
 | 固定屏幕的双面胶 1毫米宽      | [链接](https://detail.tmall.com/item.htm?id=653868724810&spm=a1z09.2.0.0.ddaa2e8d5YZtxH&_u=g2bdtj0fb094) |
+
 
 
 
