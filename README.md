@@ -28,7 +28,7 @@
 └── vintage                      # 古早系统模拟器
 ```
 
-## 驱动
+## 驱动和内核
 
 > **目前驱动是以64位官方镜像为基础开发的**
 
@@ -112,6 +112,8 @@ make -j6 Image.gz modules dtbs
 - 模拟 MIC 没调试出来，没有声音，还不确定是软件问题还是电路问题
 
 ## 结构
+
+Fusion 工程和拓竹打印工程可以在 release 下载 [to fuck]
 
 [to fuck] bad ass hero shot
 
