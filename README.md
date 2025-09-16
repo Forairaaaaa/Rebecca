@@ -118,7 +118,7 @@ make -j6 Image.gz modules dtbs
 
 ## 结构
 
-Fusion和拓竹工程可以在 release 下载 [to fuck]
+Fusion和拓竹工程可以在 [release](https://github.com/Forairaaaaa/Rebecca/releases) 下载
 
 我视频里用的 PLA 哑光，长时间使用建议用更耐高温的，底部散热出气还是比较热的
 
@@ -133,6 +133,7 @@ Fusion和拓竹工程可以在 release 下载 [to fuck]
 | MagSafe磁吸环                 | [链接](https://detail.tmall.com/item.htm?_u=g2bdtj0f9b42&id=681312383366&spm=a1z09.2.0.0.ddaa2e8d5YZtxH) |
 | 侧板磁吸磁铁 直径3mm 厚度 2mm | [链接](https://item.taobao.com/item.htm?spm=a1z09.2.0.0.ddaa2e8d5YZtxH&id=710543909089&_u=g2bdtj0fe1c5) |
 | 固定屏幕的双面胶 1毫米宽      | [链接](https://detail.tmall.com/item.htm?id=653868724810&spm=a1z09.2.0.0.ddaa2e8d5YZtxH&_u=g2bdtj0fb094) |
+
 
 
 
