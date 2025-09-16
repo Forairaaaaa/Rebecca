@@ -7,6 +7,10 @@
 一些玩法的尝试，详情可以参考各自的 README
 
 ```shell
+git clone https://github.com/Forairaaaaa/Rebecca
+```
+
+```shell
 .
 ├── camera
 │   └── camera                   # 相机 app
@@ -111,6 +115,16 @@ make -j6 Image.gz modules dtbs
 - 两个 I2C 接口是用来连线到两边侧翼的磁吸接口的，还没实际试过
 - 模拟 MIC 没调试出来，没有声音，还不确定是软件问题还是电路问题
 
+### 部分零件链接
+
+| UPS 电源                                    | https://item.taobao.com/item.htm?_u=g2bdtj0fe87e&id=782837596364&spm=a1z09.2.0.0.ddaa2e8d5YZtxH&sku_properties=1627207%3A9104969 |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| 侧边 SPI LCD 副屏                           | https://item.taobao.com/item.htm?_u=g2bdtj0f4c60&id=636002776097&spm=a1z09.2.0.0.ddaa2e8d5YZtxH |
+| 3520五磁喇叭[150MM1.25插头]                 | https://item.taobao.com/item.htm?_u=g2bdtj0f32dd&id=863554404251&spm=a1z09.2.0.0.ddaa2e8d5YZtxH |
+| 屏幕驱动到中间板排线 8P SH1.0               | https://item.taobao.com/item.htm?spm=a1z09.2.0.0.ddaa2e8d5YZtxH&id=745193272628&_u=g2bdtj0f2817 |
+| 屏幕排线 22pin芯线同向50毫米                | https://item.taobao.com/item.htm?_u=g2bdtj0f8ed0&id=702853160953&spm=a1z09.2.0.0.ddaa2e8d5YZtxH |
+| 针脚加长的 2x20P 排母，用来增高树莓派的排针 | 之前不知道买什么送的，搜一下应该有                           |
+
 ## 结构
 
 Fusion和拓竹工程 可以在 release 下载 [to fuck]
@@ -118,4 +132,15 @@ Fusion和拓竹工程 可以在 release 下载 [to fuck]
 我视频里用的 PLA 哑光，长时间使用建议用更耐高温的，底部散热出气还是比较热的
 
 [to fuck] bad ass hero shot
+
+### 零件链接
+
+|     十字圆头螺丝 M2.5*10      | https://detail.tmall.com/item.htm?_u=g2bdtj0ff887&id=16908083014&spm=a1z09.2.0.0.ddaa2e8d5YZtxH |
+| :---------------------------: | ------------------------------------------------------------ |
+|     单头六角柱 M2.5*10+6      | https://detail.tmall.com/item.htm?id=625159170166&spm=a1z09.2.0.0.ddaa2e8d5YZtxH&_u=g2bdtj0f8690 |
+|        平头螺丝 M2.5*8        | https://detail.tmall.com/item.htm?_u=g2bdtj0fa5c4&id=19815788248&spm=a1z09.2.0.0.ddaa2e8d5YZtxH |
+|            防滑垫             | https://item.taobao.com/item.htm?spm=a1z09.2.0.0.ddaa2e8d5YZtxH&id=633230700359&_u=g2bdtj0f8b00 |
+|         MagSafe磁吸环         | https://detail.tmall.com/item.htm?_u=g2bdtj0f9b42&id=681312383366&spm=a1z09.2.0.0.ddaa2e8d5YZtxH |
+| 侧板磁吸磁铁 直径3mm 厚度 2mm | https://item.taobao.com/item.htm?spm=a1z09.2.0.0.ddaa2e8d5YZtxH&id=710543909089&_u=g2bdtj0fe1c5 |
+|   固定屏幕的双面胶 1毫米宽    | https://detail.tmall.com/item.htm?id=653868724810&spm=a1z09.2.0.0.ddaa2e8d5YZtxH&_u=g2bdtj0fb094 |
 
