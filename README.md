@@ -117,8 +117,9 @@ make -j6 Image.gz modules dtbs
 
 ### 部分零件链接
 
-| UPS 电源                                    | [链接](https://item.taobao.com/item.htm?_u=g2bdtj0fe87e&id=782837596364&spm=a1z09.2.0.0.ddaa2e8d5YZtxH&sku_properties=1627207%3A9104969) |
+| :)                                          | (:                                                           |
 | :------------------------------------------ | ------------------------------------------------------------ |
+| UPS 电源                                    | [链接](https://item.taobao.com/item.htm?_u=g2bdtj0fe87e&id=782837596364&spm=a1z09.2.0.0.ddaa2e8d5YZtxH&sku_properties=1627207%3A9104969) |
 | 侧边 SPI LCD 副屏                           | [链接](https://item.taobao.com/item.htm?_u=g2bdtj0f4c60&id=636002776097&spm=a1z09.2.0.0.ddaa2e8d5YZtxH) |
 | 3520五磁喇叭[150MM1.25插头]                 | [链接](https://item.taobao.com/item.htm?_u=g2bdtj0f32dd&id=863554404251&spm=a1z09.2.0.0.ddaa2e8d5YZtxH) |
 | 屏幕驱动到中间板排线 8P SH1.0               | [链接](https://item.taobao.com/item.htm?spm=a1z09.2.0.0.ddaa2e8d5YZtxH&id=745193272628&_u=g2bdtj0f2817) |
@@ -135,8 +136,9 @@ Fusion和拓竹工程 可以在 release 下载 [to fuck]
 
 ### 零件链接
 
-| 十字圆头螺丝 M2.5*10          | [链接](https://detail.tmall.com/item.htm?_u=g2bdtj0ff887&id=16908083014&spm=a1z09.2.0.0.ddaa2e8d5YZtxH) |
+| :)                            | (:                                                           |
 | :---------------------------- | ------------------------------------------------------------ |
+| 十字圆头螺丝 M2.5*10          | [链接](https://detail.tmall.com/item.htm?_u=g2bdtj0ff887&id=16908083014&spm=a1z09.2.0.0.ddaa2e8d5YZtxH) |
 | 单头六角柱 M2.5*10+6          | [链接](https://detail.tmall.com/item.htm?id=625159170166&spm=a1z09.2.0.0.ddaa2e8d5YZtxH&_u=g2bdtj0f8690) |
 | 平头螺丝 M2.5*8               | [链接](https://detail.tmall.com/item.htm?_u=g2bdtj0fa5c4&id=19815788248&spm=a1z09.2.0.0.ddaa2e8d5YZtxH) |
 | 防滑垫                        | [链接](https://item.taobao.com/item.htm?spm=a1z09.2.0.0.ddaa2e8d5YZtxH&id=633230700359&_u=g2bdtj0f8b00) |
