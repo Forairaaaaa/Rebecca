@@ -2,7 +2,7 @@
 
 ![done mp4_20250916_234539 802](https://github.com/user-attachments/assets/22227d79-40d6-4819-8e60-59795eafba4e)
 
-视频链接：[to fucK]
+视频链接：[链接](https://www.bilibili.com/video/BV1dNp4zVE2r)
 
 ## 月饼盒
 
@@ -133,6 +133,7 @@ Fusion和拓竹工程可以在 [release](https://github.com/Forairaaaaa/Rebecca/
 | MagSafe磁吸环                 | [链接](https://detail.tmall.com/item.htm?_u=g2bdtj0f9b42&id=681312383366&spm=a1z09.2.0.0.ddaa2e8d5YZtxH) |
 | 侧板磁吸磁铁 直径3mm 厚度 2mm | [链接](https://item.taobao.com/item.htm?spm=a1z09.2.0.0.ddaa2e8d5YZtxH&id=710543909089&_u=g2bdtj0fe1c5) |
 | 固定屏幕的双面胶 1毫米宽      | [链接](https://detail.tmall.com/item.htm?id=653868724810&spm=a1z09.2.0.0.ddaa2e8d5YZtxH&_u=g2bdtj0fb094) |
+
 
 
 
