@@ -9,6 +9,12 @@
 
 ## 安装
 
+要先获取 proto 格式文件喵，需要 HAL 服务已经在运行了哦
+
+```bash
+curl http://localhost:12580/imu0/schema -o src/imu_data.proto
+```
+
 ```bash
 cargo install --path .
 ```
