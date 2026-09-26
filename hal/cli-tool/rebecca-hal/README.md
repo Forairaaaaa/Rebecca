@@ -9,10 +9,12 @@
 
 ## 安装
 
-要先获取 proto 格式文件喵，需要 HAL 服务已经在运行了哦
+从完整的 Rebecca 仓库进入 `hal/cli-tool/rebecca-hal` 目录。构建时使用仓库中的 `hal/service/src/imu_data.proto`，不需要先运行 HAL 服务。
+
+树莓派系统需要安装 Protobuf 编译器：
 
 ```bash
-curl http://localhost:12580/imu0/schema -o src/imu_data.proto
+sudo apt install protobuf-compiler
 ```
 
 ```bash
@@ -134,6 +136,23 @@ cargo build --release
 
 ```bash
 cargo run -- --verbose -h
+```
+
+
+### 无硬件验证
+
+在 Rebecca 仓库根目录运行，测试会启动项目自带的模拟 IMU 和亮度设备：
+
+```bash
+cargo build --manifest-path hal/service/Cargo.toml
+```
+
+```bash
+cargo build --manifest-path hal/cli-tool/rebecca-hal/Cargo.toml
+```
+
+```bash
+python3 hal/tests/test_cli.py
 ```
 
 ---

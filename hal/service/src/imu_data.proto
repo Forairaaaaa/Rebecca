@@ -1,28 +1,11 @@
 syntax = "proto3";
 
-message ImuData {
-  int64 timestamp = 1;
-
-  float accel_x = 2;
-  float accel_y = 3;
-  float accel_z = 4;
-
-  float gyro_x = 5;
-  float gyro_y = 6;
-  float gyro_z = 7;
-
-  float temperature = 8;
-
-  float linear_accel_x = 9;
-  float linear_accel_y = 10;
-  float linear_accel_z = 11;
-
-  float quat_w = 12;
-  float quat_x = 13;
-  float quat_y = 14;
-  float quat_z = 15;
-
-  float pitch = 16;
-  float roll = 17;
-  float yaw = 18;
+message ImuDataProto {
+  uint64        timestamp = 1; // microseconds since UNIX_EPOCH
+  repeated float accel = 2;   // ax, ay, az
+  repeated float gyro  = 3;   // gx, gy, gz
+  repeated float mag   = 4;   // mx, my, mz
+  float         temp   = 5;   // milli-degree Celsius
+  repeated float quaternion = 6; // quaternion (4 floats)
+  repeated float euler_angles = 7; // yaw, pitch, roll (radians)
 }
