@@ -1,9 +1,10 @@
 use std::io::Result;
+
 fn main() -> Result<()> {
-    // prost_build::compile_protos(&["src/imu_data.proto"], &["src/"])?;
+    let schema = "../../service/src/imu_data.proto";
+    println!("cargo:rerun-if-changed={schema}");
     prost_build::Config::new()
         .type_attribute(".", "#[derive(serde::Serialize)]")
-        .compile_protos(&["src/imu_data.proto"], &["src/"])
-        .unwrap();
+        .compile_protos(&[schema], &["../../service/src"])?;
     Ok(())
 }

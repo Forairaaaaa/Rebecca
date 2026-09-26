@@ -36,18 +36,7 @@ pub struct ImuDataProto {
 }
 
 // Human-readable protobuf schema to be exposed via schema API
-const IMU_DATA_PROTO_SCHEMA: &str = r#"syntax = "proto3";
-
-message ImuDataProto {
-  uint64        timestamp = 1; // microseconds since UNIX_EPOCH
-  repeated float accel = 2;   // ax, ay, az
-  repeated float gyro  = 3;   // gx, gy, gz
-  repeated float mag   = 4;   // mx, my, mz
-  float         temp   = 5;   // milli-degree Celsius
-  repeated float quaternion = 6; // quaternion (4 floats)
-  repeated float euler_angles = 7; // yaw, pitch, roll (radians)
-}
-"#;
+const IMU_DATA_PROTO_SCHEMA: &str = include_str!("../../imu_data.proto");
 
 pub struct ImuSocket {
     pub id: String,
