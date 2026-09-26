@@ -38,7 +38,7 @@ git clone https://github.com/Forairaaaaa/Rebecca
 
 > **目前驱动是以64位官方镜像为基础开发的**
 
-内核源码： [linux](https://github.com/Forairaaaaa/linux/tree/rpi-6.12.y-r)
+内核源码： [linux](https://github.com/Forairaaaaa/linux/tree/rpi-6.12.y-rebecca)
 
 驱动开发仓库：[rebecca_drivers](https://github.com/Forairaaaaa/rebecca_drivers)，多谢[🧊🍅哥](https://github.com/IcingTomato)猛猛调驱动
 
@@ -76,6 +76,30 @@ make -j6 Image.gz modules dtbs
 
 ```shell
 ./install.sh
+```
+
+### 调节主屏亮度
+
+先安装并启动 [HAL 服务](hal/service/README.md)，再安装 [HAL CLI](hal/cli-tool/rebecca-hal/README.md)。列出亮度设备：
+
+```bash
+rebecca-hal backlight
+```
+
+查看设备信息，确认主屏对应的设备 ID。下面以 `backlight0` 为例，实际以查询结果为准：
+
+```bash
+rebecca-hal backlight backlight0 info
+```
+
+```bash
+rebecca-hal backlight backlight0 set 0.5
+```
+
+亮度范围为 0～1，`0.5` 表示 50%。读回当前设置：
+
+```bash
+rebecca-hal backlight backlight0 get
 ```
 
 ## 硬件
